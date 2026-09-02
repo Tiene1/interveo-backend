@@ -3,6 +3,7 @@
 Structure spécifique au dépôt backend. La fiche ADR complète et le socle commun sont dans `docs/ADR.md`, qui fait foi.
 
 - **Stack** : NestJS + Prisma + PostgreSQL.
+- **Tooling** : NestJS 12 par défaut, projet en **ESM** (`"type": "module"`, imports internes suffixés `.js`), tests **Vitest**, lint **oxlint**.
 - **Pattern** : architecture en couches, monolithe modulaire.
 - **Périmètre** : les 22 User Stories MVP. Le Nice to have est hors périmètre.
 
@@ -97,7 +98,7 @@ backend/
         dto/pull-query.dto.ts
         dto/push-batch.dto.ts
   test/
-    (Jest, couverture backend > 80 %)
+    (Vitest, couverture backend > 80 %)
 ```
 
 ---

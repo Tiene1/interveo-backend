@@ -49,7 +49,7 @@ NestJS + Prisma + PostgreSQL. `class-validator` et `ValidationPipe` global avec 
 
 ## Tests
 
-- Jest. Couverture backend **> 80 %** (règle de Cédric).
+- Vitest (défaut NestJS 12). Couverture backend **> 80 %** (règle de Cédric).
 - Cas limites à couvrir : identifiants faux, intervention déjà annulée à la clôture (conflit de synchro), delta `depuis` vide, clôture sans problème ou sans travaux.
 
 ## Confirmation obligatoire avant
