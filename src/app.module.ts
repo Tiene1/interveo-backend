@@ -6,6 +6,7 @@ import { StockageModule } from './infrastructure/stockage/stockage.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
 import { UtilisateursModule } from './modules/utilisateurs/utilisateurs.module.js';
 import { InterventionsModule } from './modules/interventions/interventions.module.js';
+import { PhotosModule } from './modules/photos/photos.module.js';
 
 @Module({
   imports: [
@@ -17,6 +18,7 @@ import { InterventionsModule } from './modules/interventions/interventions.modul
     AuthModule,
     UtilisateursModule,
     InterventionsModule,
+    PhotosModule,
   ],
   controllers: [AppController],
   providers: [],
