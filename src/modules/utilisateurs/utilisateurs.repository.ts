@@ -1,6 +1,30 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service.js';
-import type { Utilisateur } from '../../generated/prisma/client.js';
+import type {
+  RoleUtilisateur,
+  Utilisateur,
+} from '../../generated/prisma/client.js';
+
+/** Utilisateur sans le hash du mot de passe. */
+export interface UtilisateurPublic {
+  id: string;
+  nom: string;
+  identifiant: string;
+  role: RoleUtilisateur;
+  actif: boolean;
+  creeLe: Date;
+  misAJourLe: Date;
+}
+
+const CHAMPS_PUBLICS = {
+  id: true,
+  nom: true,
+  identifiant: true,
+  role: true,
+  actif: true,
+  creeLe: true,
+  misAJourLe: true,
+} as const;
 
 @Injectable()
 export class UtilisateursRepository {
@@ -12,5 +36,16 @@ export class UtilisateursRepository {
 
   findById(id: string): Promise<Utilisateur | null> {
     return this.prisma.utilisateur.findUnique({ where: { id } });
+  }
+
+  list(filtre: {
+    role?: RoleUtilisateur;
+    actif?: boolean;
+  }): Promise<UtilisateurPublic[]> {
+    return this.prisma.utilisateur.findMany({
+      where: { role: filtre.role, actif: filtre.actif },
+      select: CHAMPS_PUBLICS,
+      orderBy: { nom: 'asc' },
+    });
   }
 }
