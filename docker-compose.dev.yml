@@ -1,0 +1,23 @@
+name: sim-interventions-dev
+
+services:
+  db:
+    image: postgres:17-alpine
+    container_name: sim-interventions-db-dev
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: sim
+      POSTGRES_PASSWORD: sim
+      POSTGRES_DB: sim_interventions
+    ports:
+      - "5432:5432"
+    volumes:
+      - sim_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sim -d sim_interventions"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  sim_pgdata:

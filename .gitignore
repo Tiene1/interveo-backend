@@ -6,6 +6,9 @@
 /build
 *.tsbuildinfo
 
+# client Prisma généré (regénéré par postinstall / prisma generate)
+/src/generated
+
 # tests
 /coverage
 

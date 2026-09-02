@@ -4,6 +4,8 @@ Structure spécifique au dépôt backend. La fiche ADR complète et le socle com
 
 - **Stack** : NestJS + Prisma + PostgreSQL.
 - **Tooling** : NestJS 12 par défaut, projet en **ESM** (`"type": "module"`, imports internes suffixés `.js`), tests **Vitest**, lint **oxlint**.
+- **Prisma 7** : l'URL de connexion et la config CLI sont dans **`prisma.config.ts`** (plus dans `schema.prisma`). Client runtime via **driver adapter** `@prisma/adapter-pg` + `pg`. Générateur `prisma-client` vers `src/generated/prisma` (gitignoré, regénéré par le script `postinstall`). Le `PrismaService` importe `PrismaClient` depuis `../generated/prisma/client.js` et lui passe l'adaptateur.
+- **PostgreSQL de dev** : `docker-compose.dev.yml` (image `postgres:17-alpine`). Scripts `npm run db:up` / `db:down`.
 - **Pattern** : architecture en couches, monolithe modulaire.
 - **Périmètre** : les 22 User Stories MVP. Le Nice to have est hors périmètre.
 
@@ -31,17 +33,20 @@ backend/
     architecture.md
   CLAUDE.md
   .env.example
+  .gitattributes
+  docker-compose.dev.yml          (PostgreSQL de dev)
+  prisma.config.ts                (URL de connexion + config CLI Prisma 7)
   package.json
   tsconfig.json
   nest-cli.json
   prisma/
     schema.prisma
+    migrations/
     seed.ts
   src/
     main.ts
     app.module.ts
-    config/
-      configuration.ts            (DATABASE_URL, JWT_SECRET, PHOTOS_DIR, PORT)
+    generated/prisma/             (client Prisma généré, gitignoré)
     prisma/
       prisma.module.ts
       prisma.service.ts
