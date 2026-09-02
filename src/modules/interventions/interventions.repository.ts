@@ -25,4 +25,15 @@ export class InterventionsRepository {
   create(data: CreerInterventionData): Promise<Intervention> {
     return this.prisma.intervention.create({ data });
   }
+
+  findById(id: string): Promise<Intervention | null> {
+    return this.prisma.intervention.findUnique({ where: { id } });
+  }
+
+  updateStatut(
+    id: string,
+    statut: StatutIntervention,
+  ): Promise<Intervention> {
+    return this.prisma.intervention.update({ where: { id }, data: { statut } });
+  }
 }

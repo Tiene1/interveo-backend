@@ -1,8 +1,16 @@
-import { Body, Controller, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Param,
+  ParseUUIDPipe,
+  Patch,
+  Post,
+} from '@nestjs/common';
 import { Roles } from '../auth/decorators/roles.decorator.js';
 import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
 import { InterventionsService } from './interventions.service.js';
 import { CreateInterventionDto } from './dto/create-intervention.dto.js';
+import { PatchInterventionDto } from './dto/patch-intervention.dto.js';
 import type { JwtPayload } from '../auth/auth.service.js';
 import type { Intervention } from '../../generated/prisma/client.js';
 
@@ -17,5 +25,13 @@ export class InterventionsController {
     @CurrentUser() user: JwtPayload,
   ): Promise<Intervention> {
     return this.service.creer(dto, user.sub);
+  }
+
+  @Patch(':id')
+  annuler(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() _dto: PatchInterventionDto,
+  ): Promise<Intervention> {
+    return this.service.annuler(id);
   }
 }

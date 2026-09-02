@@ -109,4 +109,52 @@ describe('Interventions - creation (e2e)', () => {
       .send(payloadValide())
       .expect(401);
   });
+
+  it('PATCH /interventions/:id annule une PLANIFIEE puis renvoie 409 au second appel', async () => {
+    const creee = await request(app.getHttpServer())
+      .post('/interventions')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send(payloadValide())
+      .expect(201);
+    const id = creee.body.id;
+
+    await request(app.getHttpServer())
+      .patch(`/interventions/${id}`)
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send({ statut: 'ANNULEE' })
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.statut).toBe('ANNULEE');
+      });
+
+    await request(app.getHttpServer())
+      .patch(`/interventions/${id}`)
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send({ statut: 'ANNULEE' })
+      .expect(409);
+  });
+
+  it('PATCH /interventions/:id avec statut REALISEE renvoie 400', () => {
+    return request(app.getHttpServer())
+      .patch('/interventions/00000000-0000-4000-8000-000000000000')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send({ statut: 'REALISEE' })
+      .expect(400);
+  });
+
+  it('PATCH /interventions/:id inexistante renvoie 404', () => {
+    return request(app.getHttpServer())
+      .patch('/interventions/00000000-0000-4000-8000-000000000000')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send({ statut: 'ANNULEE' })
+      .expect(404);
+  });
+
+  it('PATCH /interventions/:id avec un jeton technicien renvoie 403', () => {
+    return request(app.getHttpServer())
+      .patch('/interventions/00000000-0000-4000-8000-000000000000')
+      .set('Authorization', `Bearer ${tokenTechnicien}`)
+      .send({ statut: 'ANNULEE' })
+      .expect(403);
+  });
 });
