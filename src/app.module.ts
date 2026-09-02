@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller.js';
 import { PrismaModule } from './prisma/prisma.module.js';
+import { StockageModule } from './infrastructure/stockage/stockage.module.js';
 import { AuthModule } from './modules/auth/auth.module.js';
 import { UtilisateursModule } from './modules/utilisateurs/utilisateurs.module.js';
 import { InterventionsModule } from './modules/interventions/interventions.module.js';
@@ -12,6 +13,7 @@ import { InterventionsModule } from './modules/interventions/interventions.modul
       isGlobal: true,
     }),
     PrismaModule,
+    StockageModule,
     AuthModule,
     UtilisateursModule,
     InterventionsModule,
