@@ -13,6 +13,10 @@ export default defineConfig({
     pool: 'forks',
     fileParallelism: false,
     singleFork: true,
+    // Les suites e2e ferment chacune leur app Nest ; pas besoin d'isoler le
+    // module graph entre fichiers, ce qui evite de re-importer NestJS + le
+    // client Prisma genere pour chaque suite (import qui explosait a 2 min).
+    isolate: false,
     hookTimeout: 30000,
     testTimeout: 15000,
   },
