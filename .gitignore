@@ -4,6 +4,7 @@
 # compiled output
 /dist
 /build
+*.tsbuildinfo
 
 # tests
 /coverage
