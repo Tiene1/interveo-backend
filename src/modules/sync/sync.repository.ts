@@ -25,4 +25,18 @@ export class SyncRepository {
   findById(id: string): Promise<Intervention | null> {
     return this.prisma.intervention.findUnique({ where: { id } });
   }
+
+  cloturer(
+    id: string,
+    data: {
+      problemeConstate: string;
+      travauxRealises: string;
+      dateRealisation: Date;
+    },
+  ): Promise<Intervention> {
+    return this.prisma.intervention.update({
+      where: { id },
+      data: { ...data, statut: 'REALISEE' },
+    });
+  }
 }

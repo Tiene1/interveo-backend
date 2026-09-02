@@ -140,4 +140,118 @@ describe('Sync - pull (e2e)', () => {
       .get('/sync/interventions')
       .expect(401);
   });
+
+  async function creerPourKoffi(): Promise<string> {
+    const c = await request(app.getHttpServer())
+      .post('/interventions')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send({
+        nomClient: `Push ${Date.now()}-${Math.random()}`,
+        adresse: 'Cocody',
+        telephone1: '0102030405',
+        datePrevue: '2026-09-25T09:00:00.000Z',
+        technicienId: koffiId,
+      });
+    return c.body.id;
+  }
+
+  const cloture = (idServeur: string) => ({
+    idServeur,
+    problemeConstate: 'Compresseur HS',
+    travauxRealises: 'Remplacement compresseur',
+    statut: 'REALISEE',
+    dateRealisation: '2026-09-25T15:00:00.000Z',
+  });
+
+  it('POST /sync/interventions cloture une PLANIFIEE : CONFIRME puis intervention REALISEE', async () => {
+    const id = await creerPourKoffi();
+
+    await request(app.getHttpServer())
+      .post('/sync/interventions')
+      .set('Authorization', `Bearer ${tokenKoffi}`)
+      .send([cloture(id)])
+      .expect(200)
+      .expect((res) => {
+        expect(res.body).toEqual([{ idServeur: id, resultat: 'CONFIRME' }]);
+      });
+
+    return request(app.getHttpServer())
+      .get(`/interventions/${id}`)
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .expect(200)
+      .expect((res) => {
+        expect(res.body).toMatchObject({
+          statut: 'REALISEE',
+          problemeConstate: 'Compresseur HS',
+          travauxRealises: 'Remplacement compresseur',
+        });
+        expect(res.body.dateRealisation).toBeTruthy();
+      });
+  });
+
+  it('rejouer la meme cloture renvoie CONFLIT (deja REALISEE)', async () => {
+    const id = await creerPourKoffi();
+    await request(app.getHttpServer())
+      .post('/sync/interventions')
+      .set('Authorization', `Bearer ${tokenKoffi}`)
+      .send([cloture(id)])
+      .expect(200);
+
+    return request(app.getHttpServer())
+      .post('/sync/interventions')
+      .set('Authorization', `Bearer ${tokenKoffi}`)
+      .send([cloture(id)])
+      .expect(200)
+      .expect((res) => {
+        expect(res.body[0].resultat).toBe('CONFLIT');
+      });
+  });
+
+  it('cloturer une intervention annulee entre-temps renvoie CONFLIT', async () => {
+    const id = await creerPourKoffi();
+    await request(app.getHttpServer())
+      .patch(`/interventions/${id}`)
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send({ statut: 'ANNULEE' })
+      .expect(200);
+
+    return request(app.getHttpServer())
+      .post('/sync/interventions')
+      .set('Authorization', `Bearer ${tokenKoffi}`)
+      .send([cloture(id)])
+      .expect(200)
+      .expect((res) => {
+        expect(res.body[0].resultat).toBe('CONFLIT');
+      });
+  });
+
+  it('cloturer une intervention inconnue renvoie CONFLIT', () => {
+    return request(app.getHttpServer())
+      .post('/sync/interventions')
+      .set('Authorization', `Bearer ${tokenKoffi}`)
+      .send([cloture('00000000-0000-4000-8000-000000000000')])
+      .expect(200)
+      .expect((res) => {
+        expect(res.body[0].resultat).toBe('CONFLIT');
+      });
+  });
+
+  it('corps mal forme (problemeConstate manquant) renvoie 400', async () => {
+    const id = await creerPourKoffi();
+    const c = cloture(id);
+    delete (c as Record<string, unknown>).problemeConstate;
+    return request(app.getHttpServer())
+      .post('/sync/interventions')
+      .set('Authorization', `Bearer ${tokenKoffi}`)
+      .send([c])
+      .expect(400);
+  });
+
+  it('POST /sync/interventions par un directeur renvoie 403', () => {
+    return request(app.getHttpServer())
+      .post('/sync/interventions')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send([cloture('00000000-0000-4000-8000-000000000000')])
+      .expect(403);
+  });
 });
