@@ -59,4 +59,28 @@ describe('Auth (e2e)', () => {
   it('POST /auth/login sans corps renvoie 400', () => {
     return request(app.getHttpServer()).post('/auth/login').send({}).expect(400);
   });
+
+  it('GET /auth/moi sans jeton renvoie 401', () => {
+    return request(app.getHttpServer()).get('/auth/moi').expect(401);
+  });
+
+  it('GET /auth/moi avec un jeton valide renvoie le profil', async () => {
+    const login = await request(app.getHttpServer())
+      .post('/auth/login')
+      .send({ identifiant: 'kouassi', motDePasse: 'directeur123' })
+      .expect(200);
+
+    return request(app.getHttpServer())
+      .get('/auth/moi')
+      .set('Authorization', `Bearer ${login.body.accessToken}`)
+      .expect(200)
+      .expect((res) => {
+        expect(res.body).toMatchObject({
+          identifiant: 'kouassi',
+          nom: 'Kouassi Bertin',
+          role: 'DIRECTEUR',
+        });
+        expect(typeof res.body.id).toBe('string');
+      });
+  });
 });

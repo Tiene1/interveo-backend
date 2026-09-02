@@ -26,6 +26,7 @@ const compteActif = {
 function build(compte: unknown = compteActif) {
   const utilisateurs = {
     findByIdentifiant: vi.fn().mockResolvedValue(compte),
+    findById: vi.fn().mockResolvedValue(compte),
   } as unknown as UtilisateursService;
   const jwt = {
     signAsync: vi.fn().mockResolvedValue('TOKEN'),
@@ -74,5 +75,31 @@ describe('AuthService.login', () => {
     await expect(
       service.login({ identifiant: 'kouassi', motDePasse: 'faux' }),
     ).rejects.toBeInstanceOf(UnauthorizedException);
+  });
+});
+
+describe('AuthService.moi', () => {
+  it('renvoie le profil { id, nom, identifiant, role }', async () => {
+    const { service } = build();
+    await expect(service.moi('u1')).resolves.toEqual({
+      id: 'u1',
+      nom: 'Kouassi Bertin',
+      identifiant: 'kouassi',
+      role: 'DIRECTEUR',
+    });
+  });
+
+  it('401 si le compte n existe plus', async () => {
+    const { service } = build(null);
+    await expect(service.moi('u1')).rejects.toBeInstanceOf(
+      UnauthorizedException,
+    );
+  });
+
+  it('401 si le compte est desactive', async () => {
+    const { service } = build({ ...compteActif, actif: false });
+    await expect(service.moi('u1')).rejects.toBeInstanceOf(
+      UnauthorizedException,
+    );
   });
 });

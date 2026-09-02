@@ -15,6 +15,13 @@ export interface LoginResult {
   accessToken: string;
 }
 
+export interface ProfilUtilisateur {
+  id: string;
+  nom: string;
+  identifiant: string;
+  role: RoleUtilisateur;
+}
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -48,5 +55,18 @@ export class AuthService {
       role: utilisateur.role,
     };
     return { accessToken: await this.jwt.signAsync(payload) };
+  }
+
+  async moi(userId: string): Promise<ProfilUtilisateur> {
+    const utilisateur = await this.utilisateurs.findById(userId);
+    if (!utilisateur || !utilisateur.actif) {
+      throw new UnauthorizedException('Compte introuvable ou desactive');
+    }
+    return {
+      id: utilisateur.id,
+      nom: utilisateur.nom,
+      identifiant: utilisateur.identifiant,
+      role: utilisateur.role,
+    };
   }
 }
