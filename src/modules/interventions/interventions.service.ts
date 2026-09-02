@@ -7,11 +7,19 @@ import {
 import { UtilisateursService } from '../utilisateurs/utilisateurs.service.js';
 import { InterventionsRepository } from './interventions.repository.js';
 import { CreateInterventionDto } from './dto/create-intervention.dto.js';
+import { ListInterventionsDto } from './dto/list-interventions.dto.js';
 import {
   STATUT_INITIAL,
   transitionAutorisee,
 } from './domain/intervention.statut.js';
 import type { Intervention } from '../../generated/prisma/client.js';
+
+export interface PageInterventions {
+  data: Intervention[];
+  total: number;
+  page: number;
+  limit: number;
+}
 
 @Injectable()
 export class InterventionsService {
@@ -43,6 +51,14 @@ export class InterventionsService {
       creeParId,
       statut: STATUT_INITIAL,
     });
+  }
+
+  async lister(dto: ListInterventionsDto): Promise<PageInterventions> {
+    const { data, total } = await this.repo.list(
+      { client: dto.client, technicienId: dto.technicienId },
+      { page: dto.page, limit: dto.limit },
+    );
+    return { data, total, page: dto.page, limit: dto.limit };
   }
 
   async annuler(id: string): Promise<Intervention> {

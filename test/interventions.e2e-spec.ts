@@ -157,4 +157,74 @@ describe('Interventions - creation (e2e)', () => {
       .send({ statut: 'ANNULEE' })
       .expect(403);
   });
+
+  it('GET /interventions (directeur) renvoie une page triee par creeLe decroissant', async () => {
+    const clientUnique = `Client-${Date.now()}`;
+    await request(app.getHttpServer())
+      .post('/interventions')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send({ ...payloadValide(), nomClient: clientUnique })
+      .expect(201);
+    await request(app.getHttpServer())
+      .post('/interventions')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send({ ...payloadValide(), nomClient: clientUnique })
+      .expect(201);
+
+    return request(app.getHttpServer())
+      .get('/interventions')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .expect(200)
+      .expect((res) => {
+        expect(res.body).toMatchObject({ page: 1, limit: 20 });
+        expect(Array.isArray(res.body.data)).toBe(true);
+        expect(res.body.total).toBeGreaterThanOrEqual(2);
+        const dates = res.body.data.map((i: { creeLe: string }) =>
+          new Date(i.creeLe).getTime(),
+        );
+        const trie = [...dates].sort((a, b) => b - a);
+        expect(dates).toEqual(trie);
+      });
+  });
+
+  it('GET /interventions?client= filtre sur le nom du client', async () => {
+    const clientUnique = `Filtre-${Date.now()}`;
+    await request(app.getHttpServer())
+      .post('/interventions')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send({ ...payloadValide(), nomClient: clientUnique })
+      .expect(201);
+
+    return request(app.getHttpServer())
+      .get(`/interventions?client=${clientUnique}`)
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.total).toBe(1);
+        expect(res.body.data[0].nomClient).toBe(clientUnique);
+      });
+  });
+
+  it('GET /interventions?technicienId= filtre sur le technicien', () => {
+    return request(app.getHttpServer())
+      .get(`/interventions?technicienId=${technicienId}`)
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .expect(200)
+      .expect((res) => {
+        for (const i of res.body.data) {
+          expect(i.technicienId).toBe(technicienId);
+        }
+      });
+  });
+
+  it('GET /interventions avec un jeton technicien renvoie 403', () => {
+    return request(app.getHttpServer())
+      .get('/interventions')
+      .set('Authorization', `Bearer ${tokenTechnicien}`)
+      .expect(403);
+  });
+
+  it('GET /interventions sans jeton renvoie 401', () => {
+    return request(app.getHttpServer()).get('/interventions').expect(401);
+  });
 });

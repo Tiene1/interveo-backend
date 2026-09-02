@@ -39,6 +39,7 @@ function build(
     updateStatut: vi
       .fn()
       .mockImplementation((id, statut) => Promise.resolve({ id, statut })),
+    list: vi.fn().mockResolvedValue({ data: [{ id: 'i1' }], total: 1 }),
   } as unknown as InterventionsRepository;
   const utilisateurs = {
     findById: vi.fn().mockResolvedValue(compteTechnicien),
@@ -84,6 +85,30 @@ describe('InterventionsService.creer', () => {
     await expect(service.creer(dto, 'dir1')).rejects.toBeInstanceOf(
       BadRequestException,
     );
+  });
+});
+
+describe('InterventionsService.lister', () => {
+  it('transmet filtres et pagination au repository et renvoie la page', async () => {
+    const { service, repo } = build();
+
+    const res = await service.lister({
+      client: 'Ivoire',
+      technicienId: 't1',
+      page: 2,
+      limit: 10,
+    });
+
+    expect(repo.list).toHaveBeenCalledWith(
+      { client: 'Ivoire', technicienId: 't1' },
+      { page: 2, limit: 10 },
+    );
+    expect(res).toEqual({
+      data: [{ id: 'i1' }],
+      total: 1,
+      page: 2,
+      limit: 10,
+    });
   });
 });
 

@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../../prisma/prisma.service.js';
 import type {
   Intervention,
+  Prisma,
   StatutIntervention,
 } from '../../generated/prisma/client.js';
 
@@ -16,6 +17,11 @@ export interface CreerInterventionData {
   technicienId: string;
   creeParId: string;
   statut: StatutIntervention;
+}
+
+export interface FiltreInterventions {
+  client?: string;
+  technicienId?: string;
 }
 
 @Injectable()
@@ -35,5 +41,29 @@ export class InterventionsRepository {
     statut: StatutIntervention,
   ): Promise<Intervention> {
     return this.prisma.intervention.update({ where: { id }, data: { statut } });
+  }
+
+  async list(
+    filtre: FiltreInterventions,
+    pagination: { page: number; limit: number },
+  ): Promise<{ data: Intervention[]; total: number }> {
+    const where: Prisma.InterventionWhereInput = {
+      ...(filtre.client
+        ? { nomClient: { contains: filtre.client, mode: 'insensitive' } }
+        : {}),
+      ...(filtre.technicienId ? { technicienId: filtre.technicienId } : {}),
+    };
+
+    const [data, total] = await Promise.all([
+      this.prisma.intervention.findMany({
+        where,
+        orderBy: { creeLe: 'desc' },
+        skip: (pagination.page - 1) * pagination.limit,
+        take: pagination.limit,
+      }),
+      this.prisma.intervention.count({ where }),
+    ]);
+
+    return { data, total };
   }
 }
