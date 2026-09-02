@@ -7,6 +7,7 @@ import { AuthModule } from './modules/auth/auth.module.js';
 import { UtilisateursModule } from './modules/utilisateurs/utilisateurs.module.js';
 import { InterventionsModule } from './modules/interventions/interventions.module.js';
 import { PhotosModule } from './modules/photos/photos.module.js';
+import { SyncModule } from './modules/sync/sync.module.js';
 
 @Module({
   imports: [
@@ -19,6 +20,7 @@ import { PhotosModule } from './modules/photos/photos.module.js';
     UtilisateursModule,
     InterventionsModule,
     PhotosModule,
+    SyncModule,
   ],
   controllers: [AppController],
   providers: [],
