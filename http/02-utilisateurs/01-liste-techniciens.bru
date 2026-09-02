@@ -1,0 +1,30 @@
+meta {
+  name: Liste techniciens actifs
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/utilisateurs?role=TECHNICIEN&actif=true
+  body: none
+  auth: bearer
+}
+
+params:query {
+  role: TECHNICIEN
+  actif: true
+}
+
+auth:bearer {
+  token: {{tokenDirecteur}}
+}
+
+script:post-response {
+  const koffi = res.getBody().find(u => u.identifiant === "koffi");
+  if (koffi) bru.setEnvVar("technicienId", koffi.id);
+}
+
+assert {
+  res.status: eq 200
+  res.body: isArray
+}

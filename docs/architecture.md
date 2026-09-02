@@ -38,13 +38,17 @@ backend/
   prisma.config.ts                (URL de connexion + config CLI Prisma 7)
   package.json
   tsconfig.json
-  nest-cli.json
+  nest-cli.json                    (plugin @nestjs/swagger activé)
+  openapi.json                     (document OpenAPI exporté, versionné, consommé par web/ et mobile/)
+  http/                            (collection Bruno : tests d'API bout-en-bout versionnés)
   prisma/
     schema.prisma
     migrations/
     seed.ts
   src/
-    main.ts
+    main.ts                        (ValidationPipe + filtre global + Swagger sur /docs)
+    openapi.config.ts              (DocumentBuilder commun /docs et export)
+    openapi.ts                     (npm run openapi : génère openapi.json en mode preview)
     app.module.ts
     generated/prisma/             (client Prisma généré, gitignoré)
     prisma/
@@ -189,3 +193,23 @@ Validation stricte de tous les DTO (`class-validator`, `ValidationPipe` global a
 - Pas de WebSocket.
 - Pas d'endpoints de gestion de comptes en self-service (US4.5 à US4.9 Nice to have) : les comptes sont créés par le seed.
 - Champs `motifSignale` et `typeEquipement` : présents en base, **nullable**, jamais exigés par un endpoint MVP.
+
+---
+
+## 7. Tests et documentation d'API
+
+### Tests automatisés
+| Commande | Portée |
+|---|---|
+| `npm test` | tests unitaires Vitest (services, domaine) — couverture > 80 % |
+| `npm run test:e2e` | tests e2e Vitest (bootstrap Nest + PostgreSQL, un seul worker) |
+| `npm run test:api` | collection Bruno `http/` contre une API démarrée sur `localhost:3000` |
+
+`test:api` exige une base up (`npm run db:up`), le schéma + seed appliqués, et l'API lancée (`npm run start`). Les 3 couches se lancent avant tout merge sur `main`.
+
+### Swagger / OpenAPI
+- UI interactive : `GET /docs` (bouton « Authorize » pour coller un JWT).
+- Document JSON : `GET /docs-json`.
+- Ces deux routes sont servies par l'adaptateur HTTP, hors pipeline Nest : elles ne passent pas par le `JwtAuthGuard` global.
+- `openapi.json` versionné à la racine du dépôt : régénéré par `npm run openapi` (mode `preview`, pas besoin de base). Sert de contrat pour `web/` et `mobile/`.
+- Plugin CLI `@nestjs/swagger` activé dans `nest-cli.json` (`classValidatorShim`, `introspectComments`) : les schémas des DTO sont inférés sans annoter chaque propriété.

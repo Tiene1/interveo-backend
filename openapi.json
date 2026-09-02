@@ -1,0 +1,525 @@
+{
+  "openapi": "3.0.0",
+  "paths": {
+    "/health": {
+      "get": {
+        "operationId": "AppController_health",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "tags": [
+          "Sante"
+        ]
+      }
+    },
+    "/auth/login": {
+      "post": {
+        "operationId": "AuthController_login",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/LoginDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "tags": [
+          "Authentification"
+        ]
+      }
+    },
+    "/auth/moi": {
+      "get": {
+        "operationId": "AuthController_moi",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "tags": [
+          "Authentification"
+        ]
+      }
+    },
+    "/utilisateurs": {
+      "get": {
+        "operationId": "UtilisateursController_list",
+        "parameters": [
+          {
+            "name": "role",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "TECHNICIEN",
+                "DIRECTEUR"
+              ]
+            }
+          },
+          {
+            "name": "actif",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "tags": [
+          "Utilisateurs"
+        ]
+      }
+    },
+    "/interventions": {
+      "get": {
+        "operationId": "InterventionsController_lister",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "client",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "technicienId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "tags": [
+          "Interventions"
+        ]
+      },
+      "post": {
+        "operationId": "InterventionsController_creer",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateInterventionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "tags": [
+          "Interventions"
+        ]
+      }
+    },
+    "/interventions/{id}": {
+      "get": {
+        "operationId": "InterventionsController_detail",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "tags": [
+          "Interventions"
+        ]
+      },
+      "patch": {
+        "operationId": "InterventionsController_annuler",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/PatchInterventionDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "tags": [
+          "Interventions"
+        ]
+      }
+    },
+    "/interventions/{id}/photos": {
+      "post": {
+        "operationId": "PhotosController_ajouter",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "multipart/form-data": {
+              "schema": {
+                "type": "object",
+                "required": [
+                  "categorie",
+                  "fichier"
+                ],
+                "properties": {
+                  "categorie": {
+                    "type": "string",
+                    "enum": [
+                      "AVANT",
+                      "APRES"
+                    ]
+                  },
+                  "fichier": {
+                    "type": "string",
+                    "format": "binary",
+                    "description": "Image JPEG, PNG ou WebP, 5 Mo maximum"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "tags": [
+          "Photos"
+        ]
+      }
+    },
+    "/photos/{id}": {
+      "get": {
+        "operationId": "PhotosFichierController_servir",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "tags": [
+          "Photos"
+        ]
+      }
+    },
+    "/sync/interventions": {
+      "get": {
+        "operationId": "SyncController_pull",
+        "parameters": [
+          {
+            "name": "depuis",
+            "required": false,
+            "in": "query",
+            "description": "Horodatage ISO 8601 du dernier enregistrement recu par le mobile.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "tags": [
+          "Synchronisation"
+        ]
+      },
+      "post": {
+        "operationId": "SyncController_push",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                }
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "tags": [
+          "Synchronisation"
+        ]
+      }
+    }
+  },
+  "info": {
+    "title": "API SIM Interventions",
+    "description": "Suivi des interventions techniques de la Societe Ivoire Maintenance.\n\nAuthentification par jeton JWT (Bearer). Recuperer un jeton via POST /auth/login,\npuis cliquer sur « Authorize » et le coller.\n\nRoles : DIRECTEUR (back-office) et TECHNICIEN (application mobile, synchronisation).",
+    "version": "0.1.0",
+    "contact": {}
+  },
+  "tags": [],
+  "servers": [],
+  "components": {
+    "securitySchemes": {
+      "jwt": {
+        "scheme": "bearer",
+        "bearerFormat": "JWT",
+        "type": "http"
+      }
+    },
+    "schemas": {
+      "LoginDto": {
+        "type": "object",
+        "properties": {
+          "identifiant": {
+            "type": "string"
+          },
+          "motDePasse": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "identifiant",
+          "motDePasse"
+        ]
+      },
+      "CreateInterventionDto": {
+        "type": "object",
+        "properties": {
+          "nomClient": {
+            "type": "string"
+          },
+          "adresse": {
+            "type": "string"
+          },
+          "telephone1": {
+            "type": "string"
+          },
+          "telephone2": {
+            "type": "string"
+          },
+          "geolocalisation": {
+            "type": "string"
+          },
+          "motifSignale": {
+            "type": "string"
+          },
+          "datePrevue": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "technicienId": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "required": [
+          "nomClient",
+          "adresse",
+          "telephone1",
+          "datePrevue",
+          "technicienId"
+        ]
+      },
+      "PatchInterventionDto": {
+        "type": "object",
+        "properties": {
+          "statut": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "statut"
+        ]
+      }
+    }
+  }
+}

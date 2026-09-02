@@ -23,7 +23,9 @@
     "test:watch": "vitest",
     "test:cov": "vitest run --coverage",
     "test:debug": "vitest --inspect-brk --no-file-parallelism",
-    "test:e2e": "vitest run --config ./vitest.config.e2e.ts"
+    "test:e2e": "vitest run --config ./vitest.config.e2e.ts",
+    "test:api": "cd http && bru run --env local --reporter-json ../var/bruno-report.json",
+    "openapi": "nest build && node dist/openapi.js"
   },
   "dependencies": {
     "@nestjs/common": "^12.0.1",
@@ -31,6 +33,7 @@
     "@nestjs/core": "^12.0.1",
     "@nestjs/jwt": "^12.0.1",
     "@nestjs/platform-express": "^12.0.1",
+    "@nestjs/swagger": "^12.0.1",
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
     "argon2": "^0.45.1",
@@ -50,6 +53,7 @@
     "@types/node": "^24.0.0",
     "@types/pg": "^8.23.1",
     "@types/supertest": "^7.0.0",
+    "@usebruno/cli": "^4.1.0",
     "@vitest/coverage-v8": "^4.1.2",
     "dotenv": "^17.4.2",
     "oxlint": "^1.58.0",

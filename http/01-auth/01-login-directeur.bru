@@ -1,0 +1,27 @@
+meta {
+  name: Login directeur
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/auth/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "identifiant": "kouassi",
+    "motDePasse": "directeur123"
+  }
+}
+
+script:post-response {
+  bru.setEnvVar("tokenDirecteur", res.getBody().accessToken);
+}
+
+assert {
+  res.status: eq 200
+  res.body.accessToken: isString
+}

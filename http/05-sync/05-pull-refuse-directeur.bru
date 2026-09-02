@@ -1,0 +1,19 @@
+meta {
+  name: Pull refuse pour le directeur (403)
+  type: http
+  seq: 5
+}
+
+get {
+  url: {{baseUrl}}/sync/interventions
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenDirecteur}}
+}
+
+assert {
+  res.status: eq 403
+}

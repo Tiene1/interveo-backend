@@ -8,6 +8,7 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Roles } from '../auth/decorators/roles.decorator.js';
 import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
 import {
@@ -21,6 +22,8 @@ import type { InterventionDetail } from './interventions.repository.js';
 import type { JwtPayload } from '../auth/auth.service.js';
 import type { Intervention } from '../../generated/prisma/client.js';
 
+@ApiTags('Interventions')
+@ApiBearerAuth('jwt')
 @Controller('interventions')
 @Roles('DIRECTEUR')
 export class InterventionsController {

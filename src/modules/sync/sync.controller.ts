@@ -8,6 +8,7 @@ import {
   Post,
   Query,
 } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { Roles } from '../auth/decorators/roles.decorator.js';
 import { CurrentUser } from '../auth/decorators/current-user.decorator.js';
 import {
@@ -19,6 +20,8 @@ import { ClotureItemDto } from './dto/push-sync.dto.js';
 import type { JwtPayload } from '../auth/auth.service.js';
 import type { Intervention } from '../../generated/prisma/client.js';
 
+@ApiTags('Synchronisation')
+@ApiBearerAuth('jwt')
 @Controller('sync/interventions')
 @Roles('TECHNICIEN')
 export class SyncController {

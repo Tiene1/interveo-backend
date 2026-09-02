@@ -1,0 +1,22 @@
+meta {
+  name: Login mauvais mot de passe (401)
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/auth/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "identifiant": "kouassi",
+    "motDePasse": "faux"
+  }
+}
+
+assert {
+  res.status: eq 401
+}

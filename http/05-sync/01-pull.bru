@@ -1,0 +1,27 @@
+meta {
+  name: Pull interventions du technicien
+  type: http
+  seq: 1
+}
+
+get {
+  url: {{baseUrl}}/sync/interventions
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenTechnicien}}
+}
+
+assert {
+  res.status: eq 200
+  res.body: isArray
+}
+
+tests {
+  test("l'intervention creee est presente dans le pull", function () {
+    const ids = res.getBody().map((i) => i.id);
+    expect(ids).to.include(bru.getEnvVar("interventionId"));
+  });
+}

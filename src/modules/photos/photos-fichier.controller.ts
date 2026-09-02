@@ -5,8 +5,11 @@ import {
   ParseUUIDPipe,
   StreamableFile,
 } from '@nestjs/common';
+import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { PhotosService } from './photos.service.js';
 
+@ApiTags('Photos')
+@ApiBearerAuth('jwt')
 @Controller('photos')
 export class PhotosFichierController {
   constructor(private readonly service: PhotosService) {}

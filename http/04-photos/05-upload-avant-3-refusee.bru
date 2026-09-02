@@ -1,0 +1,24 @@
+meta {
+  name: 3e photo AVANT refusee (409)
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/interventions/{{interventionId}}/photos
+  body: multipartForm
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenTechnicien}}
+}
+
+body:multipart-form {
+  categorie: AVANT
+  fichier: @file(assets/pixel.png)
+}
+
+assert {
+  res.status: eq 409
+}

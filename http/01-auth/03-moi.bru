@@ -1,0 +1,21 @@
+meta {
+  name: Auth moi
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/auth/moi
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenDirecteur}}
+}
+
+assert {
+  res.status: eq 200
+  res.body.identifiant: eq kouassi
+  res.body.role: eq DIRECTEUR
+}

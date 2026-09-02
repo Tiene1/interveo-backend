@@ -1,0 +1,34 @@
+meta {
+  name: Creer intervention (a annuler)
+  type: http
+  seq: 5
+}
+
+post {
+  url: {{baseUrl}}/interventions
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenDirecteur}}
+}
+
+body:json {
+  {
+    "nomClient": "Client annule",
+    "adresse": "Zone 4, Marcory, Abidjan",
+    "telephone1": "+2250700000009",
+    "datePrevue": "2026-09-06T14:00:00.000Z",
+    "technicienId": "{{technicienId}}"
+  }
+}
+
+script:post-response {
+  bru.setEnvVar("interventionIdAnnule", res.getBody().id);
+}
+
+assert {
+  res.status: eq 201
+  res.body.statut: eq PLANIFIEE
+}
