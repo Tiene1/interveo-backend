@@ -5,7 +5,10 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { UtilisateursService } from '../utilisateurs/utilisateurs.service.js';
-import { InterventionsRepository } from './interventions.repository.js';
+import {
+  InterventionsRepository,
+  type InterventionDetail,
+} from './interventions.repository.js';
 import { CreateInterventionDto } from './dto/create-intervention.dto.js';
 import { ListInterventionsDto } from './dto/list-interventions.dto.js';
 import {
@@ -59,6 +62,14 @@ export class InterventionsService {
       { page: dto.page, limit: dto.limit },
     );
     return { data, total, page: dto.page, limit: dto.limit };
+  }
+
+  async detail(id: string): Promise<InterventionDetail> {
+    const intervention = await this.repo.findByIdComplet(id);
+    if (!intervention) {
+      throw new NotFoundException('Intervention introuvable');
+    }
+    return intervention;
   }
 
   async annuler(id: string): Promise<Intervention> {

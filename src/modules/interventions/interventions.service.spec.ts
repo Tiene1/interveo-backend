@@ -40,6 +40,7 @@ function build(
       .fn()
       .mockImplementation((id, statut) => Promise.resolve({ id, statut })),
     list: vi.fn().mockResolvedValue({ data: [{ id: 'i1' }], total: 1 }),
+    findByIdComplet: vi.fn().mockResolvedValue(interventionExistante),
   } as unknown as InterventionsRepository;
   const utilisateurs = {
     findById: vi.fn().mockResolvedValue(compteTechnicien),
@@ -84,6 +85,24 @@ describe('InterventionsService.creer', () => {
     const { service } = build({ ...technicienActif, role: 'DIRECTEUR' });
     await expect(service.creer(dto, 'dir1')).rejects.toBeInstanceOf(
       BadRequestException,
+    );
+  });
+});
+
+describe('InterventionsService.detail', () => {
+  it('renvoie l intervention complete', async () => {
+    const { service } = build(technicienActif, {
+      id: 'i1',
+      photos: [],
+      technicien: { id: 't1' },
+    });
+    await expect(service.detail('i1')).resolves.toMatchObject({ id: 'i1' });
+  });
+
+  it('404 si l intervention n existe pas', async () => {
+    const { service } = build(technicienActif, undefined);
+    await expect(service.detail('i1')).rejects.toBeInstanceOf(
+      NotFoundException,
     );
   });
 });

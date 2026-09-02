@@ -17,6 +17,7 @@ import {
 import { CreateInterventionDto } from './dto/create-intervention.dto.js';
 import { PatchInterventionDto } from './dto/patch-intervention.dto.js';
 import { ListInterventionsDto } from './dto/list-interventions.dto.js';
+import type { InterventionDetail } from './interventions.repository.js';
 import type { JwtPayload } from '../auth/auth.service.js';
 import type { Intervention } from '../../generated/prisma/client.js';
 
@@ -28,6 +29,13 @@ export class InterventionsController {
   @Get()
   lister(@Query() dto: ListInterventionsDto): Promise<PageInterventions> {
     return this.service.lister(dto);
+  }
+
+  @Get(':id')
+  detail(
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<InterventionDetail> {
+    return this.service.detail(id);
   }
 
   @Post()

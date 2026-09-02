@@ -227,4 +227,49 @@ describe('Interventions - creation (e2e)', () => {
   it('GET /interventions sans jeton renvoie 401', () => {
     return request(app.getHttpServer()).get('/interventions').expect(401);
   });
+
+  it('GET /interventions/:id renvoie le detail avec photos et technicien (sans hash)', async () => {
+    const creee = await request(app.getHttpServer())
+      .post('/interventions')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send(payloadValide())
+      .expect(201);
+
+    return request(app.getHttpServer())
+      .get(`/interventions/${creee.body.id}`)
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .expect(200)
+      .expect((res) => {
+        expect(res.body).toMatchObject({
+          id: creee.body.id,
+          nomClient: 'Hotel Ivoire',
+          statut: 'PLANIFIEE',
+        });
+        expect(Array.isArray(res.body.photos)).toBe(true);
+        expect(res.body.photos).toHaveLength(0);
+        expect(res.body.technicien).toMatchObject({ id: technicienId });
+        expect(res.body.technicien).not.toHaveProperty('motDePasseHash');
+      });
+  });
+
+  it('GET /interventions/:id inconnue renvoie 404', () => {
+    return request(app.getHttpServer())
+      .get('/interventions/00000000-0000-4000-8000-000000000000')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .expect(404);
+  });
+
+  it('GET /interventions/:id non-UUID renvoie 400', () => {
+    return request(app.getHttpServer())
+      .get('/interventions/pas-un-uuid')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .expect(400);
+  });
+
+  it('GET /interventions/:id avec un jeton technicien renvoie 403', () => {
+    return request(app.getHttpServer())
+      .get('/interventions/00000000-0000-4000-8000-000000000000')
+      .set('Authorization', `Bearer ${tokenTechnicien}`)
+      .expect(403);
+  });
 });

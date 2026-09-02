@@ -24,6 +24,23 @@ export interface FiltreInterventions {
   technicienId?: string;
 }
 
+const DETAIL_INCLUDE = {
+  photos: { orderBy: { creeLe: 'asc' } },
+  technicien: {
+    select: {
+      id: true,
+      nom: true,
+      identifiant: true,
+      role: true,
+      actif: true,
+    },
+  },
+} satisfies Prisma.InterventionInclude;
+
+export type InterventionDetail = Prisma.InterventionGetPayload<{
+  include: typeof DETAIL_INCLUDE;
+}>;
+
 @Injectable()
 export class InterventionsRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -34,6 +51,13 @@ export class InterventionsRepository {
 
   findById(id: string): Promise<Intervention | null> {
     return this.prisma.intervention.findUnique({ where: { id } });
+  }
+
+  findByIdComplet(id: string): Promise<InterventionDetail | null> {
+    return this.prisma.intervention.findUnique({
+      where: { id },
+      include: DETAIL_INCLUDE,
+    });
   }
 
   updateStatut(
