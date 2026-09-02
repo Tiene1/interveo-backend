@@ -136,4 +136,34 @@ describe('Photos (e2e)', () => {
       .attach('fichier', PNG_1PX, { filename: 'x.png', contentType: 'image/png' })
       .expect(401);
   });
+
+  it('GET /photos/:id sert le fichier image', async () => {
+    const up = await post(tokenKoffi)
+      .field('categorie', 'APRES')
+      .attach('fichier', PNG_1PX, { filename: 'a.png', contentType: 'image/png' })
+      .expect(201);
+
+    return request(app.getHttpServer())
+      .get(`/photos/${up.body.id}`)
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .expect(200)
+      .expect('Content-Type', /image\/png/)
+      .expect((res) => {
+        expect(res.body).toBeInstanceOf(Buffer);
+        expect(res.body.length).toBe(PNG_1PX.length);
+      });
+  });
+
+  it('GET /photos/:id inconnu renvoie 404', () => {
+    return request(app.getHttpServer())
+      .get('/photos/00000000-0000-4000-8000-000000000000')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .expect(404);
+  });
+
+  it('GET /photos/:id sans jeton renvoie 401', () => {
+    return request(app.getHttpServer())
+      .get('/photos/00000000-0000-4000-8000-000000000000')
+      .expect(401);
+  });
 });

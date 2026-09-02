@@ -24,6 +24,7 @@ const technicien = (sub: string): JwtPayload => ({
 function build(opts: {
   intervention?: { id: string; technicienId: string } | null;
   count?: number;
+  photo?: unknown;
 }) {
   const repo = {
     interventionResume: vi
@@ -37,9 +38,11 @@ function build(opts: {
     create: vi
       .fn()
       .mockImplementation((d) => Promise.resolve({ id: 'p1', ...d })),
+    findById: vi.fn().mockResolvedValue(opts.photo),
   } as unknown as PhotosRepository;
   const stockage = {
     save: vi.fn().mockResolvedValue(undefined),
+    read: vi.fn().mockResolvedValue(Buffer.from('contenu image')),
   } as unknown as StockageFichiers;
   return { service: new PhotosService(repo, stockage), repo, stockage };
 }
@@ -102,5 +105,37 @@ describe('PhotosService.ajouter', () => {
         directeur,
       ),
     ).rejects.toBeInstanceOf(BadRequestException);
+  });
+});
+
+describe('PhotosService.servir', () => {
+  it('renvoie le buffer et le mimetype deduit de l extension', async () => {
+    const { service } = build({
+      photo: { id: 'p1', cheminFichier: 'i1/abc.png' },
+    });
+
+    const f = await service.servir('p1');
+
+    expect(f.mimetype).toBe('image/png');
+    expect(f.buffer.toString()).toBe('contenu image');
+  });
+
+  it('404 si la photo n existe pas en base', async () => {
+    const { service } = build({ photo: null });
+    await expect(service.servir('p1')).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
+  });
+
+  it('404 si le fichier est absent du stockage', async () => {
+    const { service, stockage } = build({
+      photo: { id: 'p1', cheminFichier: 'i1/abc.png' },
+    });
+    (stockage.read as ReturnType<typeof vi.fn>).mockRejectedValue(
+      new Error('ENOENT'),
+    );
+    await expect(service.servir('p1')).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
   });
 });

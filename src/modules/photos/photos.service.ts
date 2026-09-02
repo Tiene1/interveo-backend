@@ -21,6 +21,18 @@ const EXTENSION_PAR_MIME: Record<string, string> = {
   'image/webp': 'webp',
 };
 
+const MIME_PAR_EXTENSION: Record<string, string> = {
+  jpg: 'image/jpeg',
+  jpeg: 'image/jpeg',
+  png: 'image/png',
+  webp: 'image/webp',
+};
+
+export interface FichierPhoto {
+  buffer: Buffer;
+  mimetype: string;
+}
+
 @Injectable()
 export class PhotosService {
   constructor(
@@ -67,5 +79,23 @@ export class PhotosService {
     await this.stockage.save(cheminFichier, fichier.buffer);
 
     return this.repo.create({ interventionId, categorie, cheminFichier });
+  }
+
+  async servir(id: string): Promise<FichierPhoto> {
+    const photo = await this.repo.findById(id);
+    if (!photo) {
+      throw new NotFoundException('Photo introuvable');
+    }
+
+    let buffer: Buffer;
+    try {
+      buffer = await this.stockage.read(photo.cheminFichier);
+    } catch {
+      throw new NotFoundException('Fichier de la photo introuvable');
+    }
+
+    const extension = photo.cheminFichier.split('.').pop() ?? '';
+    const mimetype = MIME_PAR_EXTENSION[extension] ?? 'application/octet-stream';
+    return { buffer, mimetype };
   }
 }
