@@ -1,0 +1,27 @@
+meta {
+  name: Login technicien
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/auth/login
+  body: json
+  auth: none
+}
+
+body:json {
+  {
+    "identifiant": "koffi",
+    "motDePasse": "technicien123"
+  }
+}
+
+script:post-response {
+  bru.setEnvVar("tokenTechnicien", res.getBody().accessToken);
+}
+
+assert {
+  res.status: eq 200
+  res.body.accessToken: isString
+}

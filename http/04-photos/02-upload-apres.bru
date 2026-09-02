@@ -1,0 +1,25 @@
+meta {
+  name: Ajouter photo APRES
+  type: http
+  seq: 2
+}
+
+post {
+  url: {{baseUrl}}/interventions/{{interventionId}}/photos
+  body: multipartForm
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenTechnicien}}
+}
+
+body:multipart-form {
+  categorie: APRES
+  fichier: @file(assets/pixel.png)
+}
+
+assert {
+  res.status: eq 201
+  res.body.categorie: eq APRES
+}

@@ -1,0 +1,32 @@
+meta {
+  name: Push d'une intervention deja cloturee (CONFLIT)
+  type: http
+  seq: 4
+}
+
+post {
+  url: {{baseUrl}}/sync/interventions
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenTechnicien}}
+}
+
+body:json {
+  [
+    {
+      "idServeur": "{{interventionId}}",
+      "problemeConstate": "Nouvelle tentative",
+      "travauxRealises": "Nouvelle tentative",
+      "statut": "REALISEE",
+      "dateRealisation": "2026-09-05T13:00:00.000Z"
+    }
+  ]
+}
+
+assert {
+  res.status: eq 200
+  res.body[0].resultat: eq CONFLIT
+}

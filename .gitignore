@@ -4,6 +4,13 @@
 # compiled output
 /dist
 /build
+*.tsbuildinfo
+
+# stockage local des photos (dev)
+/var/
+
+# client Prisma généré (regénéré par postinstall / prisma generate)
+/src/generated
 
 # tests
 /coverage

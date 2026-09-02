@@ -1,0 +1,29 @@
+meta {
+  name: Creer refuse pour un technicien (403)
+  type: http
+  seq: 8
+}
+
+post {
+  url: {{baseUrl}}/interventions
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenTechnicien}}
+}
+
+body:json {
+  {
+    "nomClient": "Tentative technicien",
+    "adresse": "Plateau, Abidjan",
+    "telephone1": "+2250700000000",
+    "datePrevue": "2026-09-07T08:00:00.000Z",
+    "technicienId": "{{technicienId}}"
+  }
+}
+
+assert {
+  res.status: eq 403
+}

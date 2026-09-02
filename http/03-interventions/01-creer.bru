@@ -1,0 +1,38 @@
+meta {
+  name: Creer intervention
+  type: http
+  seq: 1
+}
+
+post {
+  url: {{baseUrl}}/interventions
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenDirecteur}}
+}
+
+body:json {
+  {
+    "nomClient": "Hotel Ivoire",
+    "adresse": "Boulevard Hassan II, Cocody, Abidjan",
+    "telephone1": "+2250700000001",
+    "motifSignale": "Climatiseur de la salle de conference en panne",
+    "datePrevue": "2026-09-05T09:00:00.000Z",
+    "technicienId": "{{technicienId}}"
+  }
+}
+
+script:post-response {
+  bru.setEnvVar("interventionId", res.getBody().id);
+}
+
+assert {
+  res.status: eq 201
+  res.body.id: isString
+  res.body.statut: eq PLANIFIEE
+  res.body.nomClient: eq Hotel Ivoire
+  res.body.technicienId: eq {{technicienId}}
+}

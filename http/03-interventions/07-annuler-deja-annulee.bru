@@ -1,0 +1,25 @@
+meta {
+  name: Annuler une intervention deja annulee (409)
+  type: http
+  seq: 7
+}
+
+patch {
+  url: {{baseUrl}}/interventions/{{interventionIdAnnule}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenDirecteur}}
+}
+
+body:json {
+  {
+    "statut": "ANNULEE"
+  }
+}
+
+assert {
+  res.status: eq 409
+}

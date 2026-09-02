@@ -1,0 +1,28 @@
+meta {
+  name: Lister interventions (paginees)
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/interventions?page=1&limit=20
+  body: none
+  auth: bearer
+}
+
+params:query {
+  page: 1
+  limit: 20
+}
+
+auth:bearer {
+  token: {{tokenDirecteur}}
+}
+
+assert {
+  res.status: eq 200
+  res.body.data: isArray
+  res.body.total: isNumber
+  res.body.page: eq 1
+  res.body.limit: eq 20
+}

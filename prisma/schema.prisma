@@ -1,0 +1,81 @@
+// Socle commun SIM Interventions - voir docs/ADR.md
+// Un champ qui manque plus tard = ajout de champ, jamais une refonte.
+
+generator client {
+  provider = "prisma-client"
+  output   = "../src/generated/prisma"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum RoleUtilisateur {
+  TECHNICIEN
+  DIRECTEUR
+}
+
+enum StatutIntervention {
+  PLANIFIEE
+  REALISEE
+  ANNULEE
+}
+
+enum TypeEquipement {
+  CLIMATISATION
+  GROUPE_ELECTROGENE
+  INSTALLATION_ELECTRIQUE
+  AUTRE
+}
+
+enum CategoriePhoto {
+  AVANT
+  APRES
+}
+
+model Utilisateur {
+  id             String          @id @default(uuid())
+  nom            String
+  identifiant    String          @unique
+  motDePasseHash String
+  role           RoleUtilisateur
+  actif          Boolean         @default(true)
+  creeLe         DateTime        @default(now())
+  misAJourLe     DateTime        @updatedAt
+
+  interventionsAttribuees Intervention[] @relation("TechnicienAttribue")
+  interventionsCreees     Intervention[] @relation("CreePar")
+}
+
+model Intervention {
+  id              String             @id @default(uuid())
+  nomClient       String
+  adresse         String
+  telephone1      String
+  telephone2      String?
+  geolocalisation String?
+  motifSignale    String?
+  datePrevue      DateTime
+  technicienId    String
+  technicien      Utilisateur        @relation("TechnicienAttribue", fields: [technicienId], references: [id])
+  creeParId       String
+  creePar         Utilisateur        @relation("CreePar", fields: [creeParId], references: [id])
+  typeEquipement  TypeEquipement?
+  problemeConstate String?
+  travauxRealises  String?
+  statut          StatutIntervention @default(PLANIFIEE)
+  dateRealisation DateTime?
+  creeLe          DateTime           @default(now())
+  misAJourLe      DateTime           @updatedAt
+
+  photos Photo[]
+}
+
+model Photo {
+  id             String         @id @default(uuid())
+  interventionId String
+  intervention   Intervention   @relation(fields: [interventionId], references: [id], onDelete: Cascade)
+  categorie      CategoriePhoto
+  cheminFichier  String
+  creeLe         DateTime       @default(now())
+}

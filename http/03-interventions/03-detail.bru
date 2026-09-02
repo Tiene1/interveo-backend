@@ -1,0 +1,22 @@
+meta {
+  name: Detail intervention
+  type: http
+  seq: 3
+}
+
+get {
+  url: {{baseUrl}}/interventions/{{interventionId}}
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenDirecteur}}
+}
+
+assert {
+  res.status: eq 200
+  res.body.id: eq {{interventionId}}
+  res.body.photos: isArray
+  res.body.technicien.identifiant: eq koffi
+}

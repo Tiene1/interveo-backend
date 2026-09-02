@@ -1,0 +1,26 @@
+meta {
+  name: Annuler intervention
+  type: http
+  seq: 6
+}
+
+patch {
+  url: {{baseUrl}}/interventions/{{interventionIdAnnule}}
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenDirecteur}}
+}
+
+body:json {
+  {
+    "statut": "ANNULEE"
+  }
+}
+
+assert {
+  res.status: eq 200
+  res.body.statut: eq ANNULEE
+}

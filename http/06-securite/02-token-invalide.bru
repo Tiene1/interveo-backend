@@ -1,0 +1,19 @@
+meta {
+  name: Token invalide (401)
+  type: http
+  seq: 2
+}
+
+get {
+  url: {{baseUrl}}/auth/moi
+  body: none
+  auth: bearer
+}
+
+auth:bearer {
+  token: pas-un-vrai-jwt
+}
+
+assert {
+  res.status: eq 401
+}

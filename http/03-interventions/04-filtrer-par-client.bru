@@ -1,0 +1,25 @@
+meta {
+  name: Filtrer par nom de client
+  type: http
+  seq: 4
+}
+
+get {
+  url: {{baseUrl}}/interventions?client=ivoire
+  body: none
+  auth: bearer
+}
+
+params:query {
+  client: ivoire
+}
+
+auth:bearer {
+  token: {{tokenDirecteur}}
+}
+
+assert {
+  res.status: eq 200
+  res.body.data: isArray
+  res.body.total: gte 1
+}

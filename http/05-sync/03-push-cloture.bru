@@ -1,0 +1,33 @@
+meta {
+  name: Push cloture (CONFIRME)
+  type: http
+  seq: 3
+}
+
+post {
+  url: {{baseUrl}}/sync/interventions
+  body: json
+  auth: bearer
+}
+
+auth:bearer {
+  token: {{tokenTechnicien}}
+}
+
+body:json {
+  [
+    {
+      "idServeur": "{{interventionId}}",
+      "problemeConstate": "Compresseur grille, plus de froid",
+      "travauxRealises": "Remplacement du compresseur et recharge de gaz R410A",
+      "statut": "REALISEE",
+      "dateRealisation": "2026-09-05T12:30:00.000Z"
+    }
+  ]
+}
+
+assert {
+  res.status: eq 200
+  res.body[0].idServeur: eq {{interventionId}}
+  res.body[0].resultat: eq CONFIRME
+}

@@ -3,6 +3,9 @@
 Structure spécifique au dépôt backend. La fiche ADR complète et le socle commun sont dans `docs/ADR.md`, qui fait foi.
 
 - **Stack** : NestJS + Prisma + PostgreSQL.
+- **Tooling** : NestJS 12 par défaut, projet en **ESM** (`"type": "module"`, imports internes suffixés `.js`), tests **Vitest**, lint **oxlint**.
+- **Prisma 7** : l'URL de connexion et la config CLI sont dans **`prisma.config.ts`** (plus dans `schema.prisma`). Client runtime via **driver adapter** `@prisma/adapter-pg` + `pg`. Générateur `prisma-client` vers `src/generated/prisma` (gitignoré, regénéré par le script `postinstall`). Le `PrismaService` importe `PrismaClient` depuis `../generated/prisma/client.js` et lui passe l'adaptateur.
+- **PostgreSQL de dev** : `docker-compose.dev.yml` (image `postgres:17-alpine`). Scripts `npm run db:up` / `db:down`.
 - **Pattern** : architecture en couches, monolithe modulaire.
 - **Périmètre** : les 22 User Stories MVP. Le Nice to have est hors périmètre.
 
@@ -30,17 +33,24 @@ backend/
     architecture.md
   CLAUDE.md
   .env.example
+  .gitattributes
+  docker-compose.dev.yml          (PostgreSQL de dev)
+  prisma.config.ts                (URL de connexion + config CLI Prisma 7)
   package.json
   tsconfig.json
-  nest-cli.json
+  nest-cli.json                    (plugin @nestjs/swagger activé)
+  openapi.json                     (document OpenAPI exporté, versionné, consommé par web/ et mobile/)
+  http/                            (collection Bruno : tests d'API bout-en-bout versionnés)
   prisma/
     schema.prisma
+    migrations/
     seed.ts
   src/
-    main.ts
+    main.ts                        (ValidationPipe + filtre global + Swagger sur /docs)
+    openapi.config.ts              (DocumentBuilder commun /docs et export)
+    openapi.ts                     (npm run openapi : génère openapi.json en mode preview)
     app.module.ts
-    config/
-      configuration.ts            (DATABASE_URL, JWT_SECRET, PHOTOS_DIR, PORT)
+    generated/prisma/             (client Prisma généré, gitignoré)
     prisma/
       prisma.module.ts
       prisma.service.ts
@@ -97,7 +107,7 @@ backend/
         dto/pull-query.dto.ts
         dto/push-batch.dto.ts
   test/
-    (Jest, couverture backend > 80 %)
+    (Vitest, couverture backend > 80 %)
 ```
 
 ---
@@ -165,9 +175,10 @@ Validation stricte de tous les DTO (`class-validator`, `ValidationPipe` global a
 - `@CurrentUser()` injecte l'utilisateur du token (id, rôle).
 
 ### Seed
-- `prisma/seed.ts` crée 4 comptes `TECHNICIEN` et 1 compte `DIRECTEUR` (M. Kouassi).
-- Identifiants et mots de passe initiaux : définis dans `.env` (`SEED_*`) ou, à défaut, valeurs documentées dans `.env.example`.
-- Lancé par `npx prisma db seed`.
+- `prisma/seed.ts` crée 4 comptes `TECHNICIEN` (identifiants `koffi`, `awa`, `serge`, `ismael`) et 1 compte `DIRECTEUR` (`kouassi`, Kouassi Bertin).
+- Idempotent : `upsert` par `identifiant`, une nouvelle exécution ne duplique pas et ne réécrit pas le mot de passe existant.
+- Mots de passe initiaux hachés argon2, définis par `SEED_TECHNICIEN_MOTDEPASSE` et `SEED_DIRECTEUR_MOTDEPASSE` dans `.env`, valeurs par défaut documentées dans `.env.example`.
+- Commande `tsx prisma/seed.ts` déclarée dans `prisma.config.ts` (`migrations.seed`), lancée par `npx prisma db seed`.
 
 ### Configuration (`.env`)
 `DATABASE_URL`, `JWT_SECRET`, `PHOTOS_DIR`, `PORT`. Aucune de ces valeurs en dur dans le code. `.env.example` versionné, `.env` non versionné.
@@ -182,3 +193,23 @@ Validation stricte de tous les DTO (`class-validator`, `ValidationPipe` global a
 - Pas de WebSocket.
 - Pas d'endpoints de gestion de comptes en self-service (US4.5 à US4.9 Nice to have) : les comptes sont créés par le seed.
 - Champs `motifSignale` et `typeEquipement` : présents en base, **nullable**, jamais exigés par un endpoint MVP.
+
+---
+
+## 7. Tests et documentation d'API
+
+### Tests automatisés
+| Commande | Portée |
+|---|---|
+| `npm test` | tests unitaires Vitest (services, domaine) — couverture > 80 % |
+| `npm run test:e2e` | tests e2e Vitest (bootstrap Nest + PostgreSQL, un seul worker) |
+| `npm run test:api` | collection Bruno `http/` contre une API démarrée sur `localhost:3000` |
+
+`test:api` exige une base up (`npm run db:up`), le schéma + seed appliqués, et l'API lancée (`npm run start`). Les 3 couches se lancent avant tout merge sur `main`.
+
+### Swagger / OpenAPI
+- UI interactive : `GET /docs` (bouton « Authorize » pour coller un JWT).
+- Document JSON : `GET /docs-json`.
+- Ces deux routes sont servies par l'adaptateur HTTP, hors pipeline Nest : elles ne passent pas par le `JwtAuthGuard` global.
+- `openapi.json` versionné à la racine du dépôt : régénéré par `npm run openapi` (mode `preview`, pas besoin de base). Sert de contrat pour `web/` et `mobile/`.
+- Plugin CLI `@nestjs/swagger` activé dans `nest-cli.json` (`classValidatorShim`, `introspectComments`) : les schémas des DTO sont inférés sans annoter chaque propriété.
