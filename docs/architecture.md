@@ -171,9 +171,10 @@ Validation stricte de tous les DTO (`class-validator`, `ValidationPipe` global a
 - `@CurrentUser()` injecte l'utilisateur du token (id, rôle).
 
 ### Seed
-- `prisma/seed.ts` crée 4 comptes `TECHNICIEN` et 1 compte `DIRECTEUR` (M. Kouassi).
-- Identifiants et mots de passe initiaux : définis dans `.env` (`SEED_*`) ou, à défaut, valeurs documentées dans `.env.example`.
-- Lancé par `npx prisma db seed`.
+- `prisma/seed.ts` crée 4 comptes `TECHNICIEN` (identifiants `koffi`, `awa`, `serge`, `ismael`) et 1 compte `DIRECTEUR` (`kouassi`, Kouassi Bertin).
+- Idempotent : `upsert` par `identifiant`, une nouvelle exécution ne duplique pas et ne réécrit pas le mot de passe existant.
+- Mots de passe initiaux hachés argon2, définis par `SEED_TECHNICIEN_MOTDEPASSE` et `SEED_DIRECTEUR_MOTDEPASSE` dans `.env`, valeurs par défaut documentées dans `.env.example`.
+- Commande `tsx prisma/seed.ts` déclarée dans `prisma.config.ts` (`migrations.seed`), lancée par `npx prisma db seed`.
 
 ### Configuration (`.env`)
 `DATABASE_URL`, `JWT_SECRET`, `PHOTOS_DIR`, `PORT`. Aucune de ces valeurs en dur dans le code. `.env.example` versionné, `.env` non versionné.
