@@ -93,7 +93,7 @@ backend/
         domain/intervention.statut.ts  (transitions PLANIFIEE -> REALISEE / ANNULEE, garde-fous)
         dto/create-intervention.dto.ts
         dto/filter-interventions.dto.ts
-        dto/patch-intervention.dto.ts  (annulation)
+        dto/patch-intervention.dto.ts  (annulation, ou modification des champs si PLANIFIEE — US1.5/US1.6)
       photos/
         photos.module.ts
         photos.controller.ts        (POST /interventions/:id/photos, GET /photos/:id)
@@ -136,7 +136,7 @@ US2.2 et US2.3 (affichage côté mobile) n'ont pas d'endpoint dédié : les donn
 | POST | `/interventions` | DIRECTEUR | `{ nomClient, adresse, telephone1, telephone2?, geolocalisation?, motifSignale?, datePrevue, technicienId }` | US1.1, US1.8 |
 | GET | `/interventions` | DIRECTEUR | `?client=&technicienId=&page=` (tri par `creeLe` décroissant) | US3.1, US3.2, US3.3 |
 | GET | `/interventions/:id` | DIRECTEUR | inclut photos et technicien | US3.6 |
-| PATCH | `/interventions/:id` | DIRECTEUR | `{ statut: "ANNULEE" }` (autorisé si PLANIFIEE) | US1.7 |
+| PATCH | `/interventions/:id` | DIRECTEUR | `{ statut: "ANNULEE" }` **ou** un sous-ensemble des champs de création (jamais les deux ensemble), modification autorisée seulement si PLANIFIEE | US1.7, US1.5, US1.6 |
 | POST | `/interventions/:id/photos` | authentifié | multipart : `categorie` (AVANT/APRES), fichier | US2.7, US2.8 |
 | GET | `/photos/:id` | authentifié | renvoie le fichier après vérification JWT | US3.7 |
 | GET | `/sync/interventions` | TECHNICIEN | `?depuis=<ISO8601>` : delta des interventions attribuées, hors ANNULEE | US2.1 |
@@ -154,6 +154,13 @@ Validation stricte de tous les DTO (`class-validator`, `ValidationPipe` global a
 - `PATCH ... { statut: ANNULEE }` : autorisé seulement depuis `PLANIFIEE`.
 - Clôture (via `sync`) : `PLANIFIEE` vers `REALISEE`, exige `problemeConstate` et `travauxRealises` non vides. **Le type d'équipement n'est pas requis** (US2.4 Nice to have).
 - `dateRealisation` est fixée par le serveur à la réception de la clôture.
+
+### Modification des champs d'une intervention (US1.5, US1.6 — Nice to have promues)
+US1.5 (« modifier une intervention non encore réalisée ») et US1.6 (« réattribuer à un autre technicien ») étaient classées Nice to have lors du tri du 2026-09-01, donc hors périmètre de l'architecture Phase II. Promues après la livraison des 10 US MVP web (règle : le Nice to have se traite seulement une fois le MVP déployé). `InterventionsService.patch()` fait office de dispatcher sur le même endpoint que l'annulation US1.7 :
+- si `statut` est fourni seul → annulation (comportement US1.7 inchangé) ;
+- si un ou plusieurs champs de création sont fournis (sans `statut`) → modification, refusée par 409 si l'intervention n'est plus `PLANIFIEE` ;
+- combiner `statut` et des champs dans la même requête renvoie 400.
+`telephone2`/`geolocalisation` envoyés en chaîne vide effacent explicitement la valeur (mise à `null`) ; absents de la requête, ils restent inchangés. Le technicien réassigné est revalidé avec la même règle qu'à la création (actif, rôle `TECHNICIEN`).
 
 ### Synchronisation
 - `GET /sync/interventions?depuis=` : renvoie les interventions où `technicienId = utilisateur connecté`, `statut != ANNULEE`, `misAJourLe > depuis`. Sans `depuis`, renvoie tout l'attribué non annulé.
