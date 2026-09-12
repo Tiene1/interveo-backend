@@ -15,7 +15,16 @@ describe('AppController (e2e)', () => {
 
     app = moduleFixture.createNestApplication();
     app.useGlobalFilters(new HttpExceptionFilter());
+    app.enableCors({ origin: ['http://localhost:3001'] });
     await app.init();
+  });
+
+  it('autorise les appels CORS depuis le back-office web', () => {
+    return request(app.getHttpServer())
+      .get('/health')
+      .set('Origin', 'http://localhost:3001')
+      .expect(200)
+      .expect('Access-Control-Allow-Origin', 'http://localhost:3001');
   });
 
   it('/health (GET)', () => {

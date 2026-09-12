@@ -9,6 +9,13 @@ import { configOpenApi } from './openapi.config.js';
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
 
+  const config = app.get(ConfigService);
+  const corsOrigins = config
+    .get<string>('CORS_ORIGIN', 'http://localhost:3001')
+    .split(',')
+    .map((origin) => origin.trim());
+  app.enableCors({ origin: corsOrigins });
+
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -24,7 +31,6 @@ async function bootstrap() {
     swaggerOptions: { persistAuthorization: true },
   });
 
-  const config = app.get(ConfigService);
   const port = config.get<number>('PORT', 3000);
   await app.listen(port);
 }
