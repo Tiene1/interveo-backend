@@ -158,6 +158,115 @@ describe('Interventions - creation (e2e)', () => {
       .expect(403);
   });
 
+  it('PATCH /interventions/:id modifie les champs d une intervention PLANIFIEE', async () => {
+    const creee = await request(app.getHttpServer())
+      .post('/interventions')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send(payloadValide())
+      .expect(201);
+    const id = creee.body.id;
+
+    await request(app.getHttpServer())
+      .patch(`/interventions/${id}`)
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send({ nomClient: 'Hotel Ivoire (corrige)', telephone2: '0708091011' })
+      .expect(200)
+      .expect((res) => {
+        expect(res.body).toMatchObject({
+          id,
+          nomClient: 'Hotel Ivoire (corrige)',
+          telephone2: '0708091011',
+          statut: 'PLANIFIEE',
+        });
+      });
+
+    const detail = await request(app.getHttpServer())
+      .get(`/interventions/${id}`)
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .expect(200);
+    expect(detail.body.nomClient).toBe('Hotel Ivoire (corrige)');
+  });
+
+  it('PATCH /interventions/:id efface telephone2 quand il est envoye en chaine vide', async () => {
+    const creee = await request(app.getHttpServer())
+      .post('/interventions')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send({ ...payloadValide(), telephone2: '0708091011' })
+      .expect(201);
+
+    return request(app.getHttpServer())
+      .patch(`/interventions/${creee.body.id}`)
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send({ telephone2: '' })
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.telephone2).toBeNull();
+      });
+  });
+
+  it('PATCH /interventions/:id avec un technicienId inexistant renvoie 400', async () => {
+    const creee = await request(app.getHttpServer())
+      .post('/interventions')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send(payloadValide())
+      .expect(201);
+
+    return request(app.getHttpServer())
+      .patch(`/interventions/${creee.body.id}`)
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send({ technicienId: '00000000-0000-4000-8000-000000000000' })
+      .expect(400);
+  });
+
+  it('PATCH /interventions/:id sans aucun champ renvoie 400', async () => {
+    const creee = await request(app.getHttpServer())
+      .post('/interventions')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send(payloadValide())
+      .expect(201);
+
+    return request(app.getHttpServer())
+      .patch(`/interventions/${creee.body.id}`)
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send({})
+      .expect(400);
+  });
+
+  it('PATCH /interventions/:id en combinant statut et champs renvoie 400', async () => {
+    const creee = await request(app.getHttpServer())
+      .post('/interventions')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send(payloadValide())
+      .expect(201);
+
+    return request(app.getHttpServer())
+      .patch(`/interventions/${creee.body.id}`)
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send({ statut: 'ANNULEE', nomClient: 'X' })
+      .expect(400);
+  });
+
+  it('PATCH /interventions/:id sur une intervention ANNULEE renvoie 409', async () => {
+    const creee = await request(app.getHttpServer())
+      .post('/interventions')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send(payloadValide())
+      .expect(201);
+    const id = creee.body.id;
+
+    await request(app.getHttpServer())
+      .patch(`/interventions/${id}`)
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send({ statut: 'ANNULEE' })
+      .expect(200);
+
+    return request(app.getHttpServer())
+      .patch(`/interventions/${id}`)
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send({ nomClient: 'X' })
+      .expect(409);
+  });
+
   it('GET /interventions (directeur) renvoie une page triee par creeLe decroissant', async () => {
     const clientUnique = `Client-${Date.now()}`;
     await request(app.getHttpServer())

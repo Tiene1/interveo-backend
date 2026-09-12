@@ -39,6 +39,9 @@ function build(
     updateStatut: vi
       .fn()
       .mockImplementation((id, statut) => Promise.resolve({ id, statut })),
+    updateChamps: vi
+      .fn()
+      .mockImplementation((id, champs) => Promise.resolve({ id, ...champs })),
     list: vi.fn().mockResolvedValue({ data: [{ id: 'i1' }], total: 1 }),
     findByIdComplet: vi.fn().mockResolvedValue(interventionExistante),
   } as unknown as InterventionsRepository;
@@ -169,5 +172,90 @@ describe('InterventionsService.annuler', () => {
     await expect(service.annuler('i1')).rejects.toBeInstanceOf(
       ConflictException,
     );
+  });
+});
+
+describe('InterventionsService.patch', () => {
+  it('modifie les champs fournis d une intervention PLANIFIEE', async () => {
+    const { service, repo } = build(technicienActif, {
+      id: 'i1',
+      statut: 'PLANIFIEE',
+    });
+
+    await service.patch('i1', { nomClient: 'Nouveau nom', technicienId: 't1' });
+
+    expect(repo.updateChamps).toHaveBeenCalledWith('i1', {
+      nomClient: 'Nouveau nom',
+      technicienId: 't1',
+    });
+  });
+
+  it('efface telephone2/geolocalisation quand ils sont envoyes en chaine vide', async () => {
+    const { service, repo } = build(technicienActif, {
+      id: 'i1',
+      statut: 'PLANIFIEE',
+    });
+
+    await service.patch('i1', { telephone2: '', geolocalisation: '' });
+
+    expect(repo.updateChamps).toHaveBeenCalledWith('i1', {
+      telephone2: null,
+      geolocalisation: null,
+    });
+  });
+
+  it('404 si l intervention n existe pas', async () => {
+    const { service } = build(technicienActif, undefined);
+    await expect(
+      service.patch('i1', { nomClient: 'X' }),
+    ).rejects.toBeInstanceOf(NotFoundException);
+  });
+
+  it('409 si l intervention n est plus PLANIFIEE', async () => {
+    const { service } = build(technicienActif, {
+      id: 'i1',
+      statut: 'REALISEE',
+    });
+    await expect(
+      service.patch('i1', { nomClient: 'X' }),
+    ).rejects.toBeInstanceOf(ConflictException);
+  });
+
+  it('400 si le technicien reassigne est introuvable ou inactif', async () => {
+    const { service } = build(null, { id: 'i1', statut: 'PLANIFIEE' });
+    await expect(
+      service.patch('i1', { technicienId: 't2' }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it('400 si statut et champs sont combines dans la meme requete', async () => {
+    const { service } = build(technicienActif, {
+      id: 'i1',
+      statut: 'PLANIFIEE',
+    });
+    await expect(
+      service.patch('i1', { statut: 'ANNULEE', nomClient: 'X' }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+  });
+
+  it('400 si aucune modification n est fournie', async () => {
+    const { service } = build(technicienActif, {
+      id: 'i1',
+      statut: 'PLANIFIEE',
+    });
+    await expect(service.patch('i1', {})).rejects.toBeInstanceOf(
+      BadRequestException,
+    );
+  });
+
+  it('delegue a l annulation quand seul statut ANNULEE est fourni', async () => {
+    const { service, repo } = build(technicienActif, {
+      id: 'i1',
+      statut: 'PLANIFIEE',
+    });
+
+    await service.patch('i1', { statut: 'ANNULEE' });
+
+    expect(repo.updateStatut).toHaveBeenCalledWith('i1', 'ANNULEE');
   });
 });

@@ -19,6 +19,16 @@ export interface CreerInterventionData {
   statut: StatutIntervention;
 }
 
+export interface ModifierInterventionData {
+  nomClient?: string;
+  adresse?: string;
+  telephone1?: string;
+  telephone2?: string | null;
+  geolocalisation?: string | null;
+  datePrevue?: Date;
+  technicienId?: string;
+}
+
 export interface FiltreInterventions {
   client?: string;
   technicienId?: string;
@@ -65,6 +75,13 @@ export class InterventionsRepository {
     statut: StatutIntervention,
   ): Promise<Intervention> {
     return this.prisma.intervention.update({ where: { id }, data: { statut } });
+  }
+
+  updateChamps(
+    id: string,
+    data: ModifierInterventionData,
+  ): Promise<Intervention> {
+    return this.prisma.intervention.update({ where: { id }, data });
   }
 
   async list(

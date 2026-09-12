@@ -249,7 +249,7 @@
         ]
       },
       "patch": {
-        "operationId": "InterventionsController_annuler",
+        "operationId": "InterventionsController_patch",
         "parameters": [
           {
             "name": "id",
@@ -513,12 +513,35 @@
         "type": "object",
         "properties": {
           "statut": {
+            "type": "string",
+            "enum": [
+              "ANNULEE"
+            ]
+          },
+          "nomClient": {
             "type": "string"
+          },
+          "adresse": {
+            "type": "string"
+          },
+          "telephone1": {
+            "type": "string"
+          },
+          "telephone2": {
+            "type": "string"
+          },
+          "geolocalisation": {
+            "type": "string"
+          },
+          "datePrevue": {
+            "format": "date-time",
+            "type": "string"
+          },
+          "technicienId": {
+            "type": "string",
+            "format": "uuid"
           }
-        },
-        "required": [
-          "statut"
-        ]
+        }
       }
     }
   }

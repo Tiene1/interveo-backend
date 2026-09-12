@@ -11,6 +11,7 @@ import {
 } from './interventions.repository.js';
 import { CreateInterventionDto } from './dto/create-intervention.dto.js';
 import { ListInterventionsDto } from './dto/list-interventions.dto.js';
+import { PatchInterventionDto } from './dto/patch-intervention.dto.js';
 import {
   STATUT_INITIAL,
   transitionAutorisee,
@@ -83,5 +84,69 @@ export class InterventionsService {
       );
     }
     return this.repo.updateStatut(id, 'ANNULEE');
+  }
+
+  async patch(id: string, dto: PatchInterventionDto): Promise<Intervention> {
+    const { statut, ...champs } = dto;
+    const champsFournis = Object.values(champs).some(
+      (valeur) => valeur !== undefined,
+    );
+
+    if (statut && champsFournis) {
+      throw new BadRequestException(
+        "Impossible de combiner l'annulation et la modification de champs dans la meme requete",
+      );
+    }
+    if (statut) {
+      return this.annuler(id);
+    }
+    if (!champsFournis) {
+      throw new BadRequestException('Aucune modification fournie');
+    }
+    return this.modifier(id, champs);
+  }
+
+  private async modifier(
+    id: string,
+    champs: Omit<PatchInterventionDto, 'statut'>,
+  ): Promise<Intervention> {
+    const intervention = await this.repo.findById(id);
+    if (!intervention) {
+      throw new NotFoundException('Intervention introuvable');
+    }
+    if (intervention.statut !== 'PLANIFIEE') {
+      throw new ConflictException(
+        `Une intervention ${intervention.statut} ne peut pas etre modifiee`,
+      );
+    }
+
+    if (champs.technicienId !== undefined) {
+      const technicien = await this.utilisateurs.findById(champs.technicienId);
+      if (!technicien || !technicien.actif || technicien.role !== 'TECHNICIEN') {
+        throw new BadRequestException(
+          'Le technicien attribue est introuvable ou inactif',
+        );
+      }
+    }
+
+    return this.repo.updateChamps(id, {
+      ...(champs.nomClient !== undefined && { nomClient: champs.nomClient }),
+      ...(champs.adresse !== undefined && { adresse: champs.adresse }),
+      ...(champs.telephone1 !== undefined && {
+        telephone1: champs.telephone1,
+      }),
+      ...(champs.telephone2 !== undefined && {
+        telephone2: champs.telephone2 || null,
+      }),
+      ...(champs.geolocalisation !== undefined && {
+        geolocalisation: champs.geolocalisation || null,
+      }),
+      ...(champs.datePrevue !== undefined && {
+        datePrevue: champs.datePrevue,
+      }),
+      ...(champs.technicienId !== undefined && {
+        technicienId: champs.technicienId,
+      }),
+    });
   }
 }

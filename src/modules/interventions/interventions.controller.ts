@@ -50,10 +50,10 @@ export class InterventionsController {
   }
 
   @Patch(':id')
-  annuler(
+  patch(
     @Param('id', ParseUUIDPipe) id: string,
-    @Body() _dto: PatchInterventionDto,
+    @Body() dto: PatchInterventionDto,
   ): Promise<Intervention> {
-    return this.service.annuler(id);
+    return this.service.patch(id, dto);
   }
 }
