@@ -93,7 +93,7 @@ backend/
         domain/intervention.statut.ts  (transitions PLANIFIEE -> REALISEE / ANNULEE, garde-fous)
         dto/create-intervention.dto.ts
         dto/filter-interventions.dto.ts
-        dto/patch-intervention.dto.ts  (annulation, ou modification des champs si PLANIFIEE — US1.5/US1.6)
+        dto/patch-intervention.dto.ts  (annulation, ou modification des champs si PLANIFIEE, US1.5/US1.6)
       photos/
         photos.module.ts
         photos.controller.ts        (POST /interventions/:id/photos, GET /photos/:id)
@@ -155,7 +155,7 @@ Validation stricte de tous les DTO (`class-validator`, `ValidationPipe` global a
 - Clôture (via `sync`) : `PLANIFIEE` vers `REALISEE`, exige `problemeConstate` et `travauxRealises` non vides. **Le type d'équipement n'est pas requis** (US2.4 Nice to have).
 - `dateRealisation` est fixée par le serveur à la réception de la clôture.
 
-### Modification des champs d'une intervention (US1.5, US1.6 — Nice to have promues)
+### Modification des champs d'une intervention (US1.5, US1.6, Nice to have promues)
 US1.5 (« modifier une intervention non encore réalisée ») et US1.6 (« réattribuer à un autre technicien ») étaient classées Nice to have lors du tri du 2026-09-01, donc hors périmètre de l'architecture Phase II. Promues après la livraison des 10 US MVP web (règle : le Nice to have se traite seulement une fois le MVP déployé). `InterventionsService.patch()` fait office de dispatcher sur le même endpoint que l'annulation US1.7 :
 - si `statut` est fourni seul → annulation (comportement US1.7 inchangé) ;
 - si un ou plusieurs champs de création sont fournis (sans `statut`) → modification, refusée par 409 si l'intervention n'est plus `PLANIFIEE` ;
