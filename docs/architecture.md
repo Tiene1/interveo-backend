@@ -136,7 +136,7 @@ US2.2 et US2.3 (affichage côté mobile) n'ont pas d'endpoint dédié : les donn
 | POST | `/interventions` | DIRECTEUR | `{ nomClient, adresse, telephone1, telephone2?, geolocalisation?, motifSignale?, datePrevue, technicienId }` | US1.1, US1.8 |
 | GET | `/interventions` | DIRECTEUR | `?client=&technicienId=&page=` (tri par `creeLe` décroissant) | US3.1, US3.2, US3.3 |
 | GET | `/interventions/:id` | DIRECTEUR | inclut photos et technicien | US3.6 |
-| PATCH | `/interventions/:id` | DIRECTEUR | `{ statut: "ANNULEE" }` **ou** un sous-ensemble des champs de création (jamais les deux ensemble), modification autorisée seulement si PLANIFIEE | US1.7, US1.5, US1.6 |
+| PATCH | `/interventions/:id` | DIRECTEUR | `{ statut: "ANNULEE" }` **ou** un sous-ensemble des champs de création (jamais les deux ensemble), modification autorisée seulement si PLANIFIEE | US1.7, US1.5, US1.6, US1.2 |
 | POST | `/interventions/:id/photos` | authentifié | multipart : `categorie` (AVANT/APRES), fichier | US2.7, US2.8 |
 | GET | `/photos/:id` | authentifié | renvoie le fichier après vérification JWT | US3.7 |
 | GET | `/sync/interventions` | TECHNICIEN | `?depuis=<ISO8601>` : delta des interventions attribuées, hors ANNULEE | US2.1 |
@@ -160,7 +160,9 @@ US1.5 (« modifier une intervention non encore réalisée ») et US1.6 (« réat
 - si `statut` est fourni seul → annulation (comportement US1.7 inchangé) ;
 - si un ou plusieurs champs de création sont fournis (sans `statut`) → modification, refusée par 409 si l'intervention n'est plus `PLANIFIEE` ;
 - combiner `statut` et des champs dans la même requête renvoie 400.
-`telephone2`/`geolocalisation` envoyés en chaîne vide effacent explicitement la valeur (mise à `null`) ; absents de la requête, ils restent inchangés. Le technicien réassigné est revalidé avec la même règle qu'à la création (actif, rôle `TECHNICIEN`).
+`telephone2`/`geolocalisation`/`motifSignale` envoyés en chaîne vide effacent explicitement la valeur (mise à `null`) ; absents de la requête, ils restent inchangés. Le technicien réassigné est revalidé avec la même règle qu'à la création (actif, rôle `TECHNICIEN`).
+
+**`motifSignale` ajouté au PATCH (US1.2 promue) le 2026-09-14** : Cédric a remarqué que le champ était affiché (mobile US2.2, web US3.6) sans jamais pouvoir être renseigné — incohérence déjà actée sans correctif en Phase II (`docs/ADR.md`, incohérence n°2 : saisie US1.2 Nice to have, affichage MVP). Plutôt que de masquer l'affichage, US1.2 est promue comme US1.5/US1.6 l'ont été : `motifSignale` rejoint `PatchInterventionDto` avec la même sémantique « chaîne vide efface » que `telephone2`/`geolocalisation` (déjà accepté en création depuis le socle, `CreateInterventionDto`). Aucune migration Prisma nécessaire, la colonne existait déjà, nullable, depuis la migration `init`.
 
 ### Synchronisation
 - `GET /sync/interventions?depuis=` : renvoie les interventions où `technicienId = utilisateur connecté`, `statut != ANNULEE`, `misAJourLe > depuis`. Sans `depuis`, renvoie tout l'attribué non annulé.

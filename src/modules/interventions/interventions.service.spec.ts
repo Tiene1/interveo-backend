@@ -190,17 +190,22 @@ describe('InterventionsService.patch', () => {
     });
   });
 
-  it('efface telephone2/geolocalisation quand ils sont envoyes en chaine vide', async () => {
+  it('efface telephone2/geolocalisation/motifSignale quand ils sont envoyes en chaine vide', async () => {
     const { service, repo } = build(technicienActif, {
       id: 'i1',
       statut: 'PLANIFIEE',
     });
 
-    await service.patch('i1', { telephone2: '', geolocalisation: '' });
+    await service.patch('i1', {
+      telephone2: '',
+      geolocalisation: '',
+      motifSignale: '',
+    });
 
     expect(repo.updateChamps).toHaveBeenCalledWith('i1', {
       telephone2: null,
       geolocalisation: null,
+      motifSignale: null,
     });
   });
 

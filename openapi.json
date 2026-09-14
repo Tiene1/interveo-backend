@@ -533,6 +533,9 @@
           "geolocalisation": {
             "type": "string"
           },
+          "motifSignale": {
+            "type": "string"
+          },
           "datePrevue": {
             "format": "date-time",
             "type": "string"

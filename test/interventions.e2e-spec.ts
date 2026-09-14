@@ -169,13 +169,18 @@ describe('Interventions - creation (e2e)', () => {
     await request(app.getHttpServer())
       .patch(`/interventions/${id}`)
       .set('Authorization', `Bearer ${tokenDirecteur}`)
-      .send({ nomClient: 'Hotel Ivoire (corrige)', telephone2: '0708091011' })
+      .send({
+        nomClient: 'Hotel Ivoire (corrige)',
+        telephone2: '0708091011',
+        motifSignale: 'Climatiseur en panne',
+      })
       .expect(200)
       .expect((res) => {
         expect(res.body).toMatchObject({
           id,
           nomClient: 'Hotel Ivoire (corrige)',
           telephone2: '0708091011',
+          motifSignale: 'Climatiseur en panne',
           statut: 'PLANIFIEE',
         });
       });
@@ -187,20 +192,25 @@ describe('Interventions - creation (e2e)', () => {
     expect(detail.body.nomClient).toBe('Hotel Ivoire (corrige)');
   });
 
-  it('PATCH /interventions/:id efface telephone2 quand il est envoye en chaine vide', async () => {
+  it('PATCH /interventions/:id efface telephone2/motifSignale quand ils sont envoyes en chaine vide', async () => {
     const creee = await request(app.getHttpServer())
       .post('/interventions')
       .set('Authorization', `Bearer ${tokenDirecteur}`)
-      .send({ ...payloadValide(), telephone2: '0708091011' })
+      .send({
+        ...payloadValide(),
+        telephone2: '0708091011',
+        motifSignale: 'Climatiseur en panne',
+      })
       .expect(201);
 
     return request(app.getHttpServer())
       .patch(`/interventions/${creee.body.id}`)
       .set('Authorization', `Bearer ${tokenDirecteur}`)
-      .send({ telephone2: '' })
+      .send({ telephone2: '', motifSignale: '' })
       .expect(200)
       .expect((res) => {
         expect(res.body.telephone2).toBeNull();
+        expect(res.body.motifSignale).toBeNull();
       });
   });
 

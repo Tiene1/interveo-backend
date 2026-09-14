@@ -13,9 +13,10 @@ import {
  * dans la même requête) :
  * - annulation : { statut: 'ANNULEE' } seul. La clôture (REALISEE) passe par
  *   la synchronisation, pas par cet endpoint.
- * - modification des champs de création (US1.1/US1.8), uniquement autorisée
- *   si l'intervention est encore PLANIFIEE. `telephone2`/`geolocalisation`
- *   envoyés en chaîne vide effacent la valeur existante (mise à null).
+ * - modification des champs de création (US1.1/US1.8/US1.2), uniquement
+ *   autorisée si l'intervention est encore PLANIFIEE. `telephone2`/
+ *   `geolocalisation`/`motifSignale` envoyés en chaîne vide effacent la
+ *   valeur existante (mise à null).
  */
 export class PatchInterventionDto {
   @IsOptional()
@@ -44,6 +45,10 @@ export class PatchInterventionDto {
   @IsOptional()
   @IsString()
   geolocalisation?: string;
+
+  @IsOptional()
+  @IsString()
+  motifSignale?: string;
 
   @IsOptional()
   @Type(() => Date)

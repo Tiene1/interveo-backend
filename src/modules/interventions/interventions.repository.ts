@@ -25,6 +25,7 @@ export interface ModifierInterventionData {
   telephone1?: string;
   telephone2?: string | null;
   geolocalisation?: string | null;
+  motifSignale?: string | null;
   datePrevue?: Date;
   technicienId?: string;
 }

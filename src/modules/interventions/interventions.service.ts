@@ -141,6 +141,9 @@ export class InterventionsService {
       ...(champs.geolocalisation !== undefined && {
         geolocalisation: champs.geolocalisation || null,
       }),
+      ...(champs.motifSignale !== undefined && {
+        motifSignale: champs.motifSignale || null,
+      }),
       ...(champs.datePrevue !== undefined && {
         datePrevue: champs.datePrevue,
       }),
