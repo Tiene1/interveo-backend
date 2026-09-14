@@ -134,7 +134,7 @@ US2.2 et US2.3 (affichage côté mobile) n'ont pas d'endpoint dédié : les donn
 | GET | `/auth/moi` | authentifié | — | US4.2 |
 | GET | `/utilisateurs` | DIRECTEUR | `?role=TECHNICIEN&actif=true` | US1.3, US3.3 |
 | POST | `/interventions` | DIRECTEUR | `{ nomClient, adresse, telephone1, telephone2?, geolocalisation?, motifSignale?, datePrevue, technicienId }` | US1.1, US1.8 |
-| GET | `/interventions` | DIRECTEUR | `?client=&technicienId=&page=` (tri par `creeLe` décroissant) | US3.1, US3.2, US3.3 |
+| GET | `/interventions` | DIRECTEUR | `?client=&technicienId=&page=` (tri par `creeLe` décroissant), réponse enrichie d'un `parStatut` (cf. note ci-dessous) | US3.1, US3.2, US3.3 |
 | GET | `/interventions/:id` | DIRECTEUR | inclut photos et technicien | US3.6 |
 | PATCH | `/interventions/:id` | DIRECTEUR | `{ statut: "ANNULEE" }` **ou** un sous-ensemble des champs de création (jamais les deux ensemble), modification autorisée seulement si PLANIFIEE | US1.7, US1.5, US1.6, US1.2 |
 | POST | `/interventions/:id/photos` | authentifié | multipart : `categorie` (AVANT/APRES), fichier | US2.7, US2.8 |
@@ -143,6 +143,8 @@ US2.2 et US2.3 (affichage côté mobile) n'ont pas d'endpoint dédié : les donn
 | POST | `/sync/interventions` | TECHNICIEN | batch des clôtures : `[{ idServeur, problemeConstate, travauxRealises, statut, dateRealisation }]` | US2.5, US2.6, US2.9, US2.10, US2.11 |
 
 Validation stricte de tous les DTO (`class-validator`, `ValidationPipe` global avec `whitelist: true`).
+
+**`parStatut` ajouté à `GET /interventions` le 2026-09-14** : Cédric a demandé que la légende de la liste web reprenne fidèlement `W2 - Liste interventions.html` (« X interventions au total — Y planifiées, Z réalisées, W annulées »), un vrai décompte, pas des chiffres inventés. `InterventionsRepository.list()` ajoute une requête `groupBy(['statut'])` (même `where` que le count total et la page de données, donc cohérent avec les filtres client/technicien actifs), agrégée en `Record<StatutIntervention, number>` avec les 3 statuts toujours présents (0 par défaut si absent du résultat du groupBy). Aucune migration Prisma nécessaire.
 
 ---
 

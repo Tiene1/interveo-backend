@@ -42,7 +42,11 @@ function build(
     updateChamps: vi
       .fn()
       .mockImplementation((id, champs) => Promise.resolve({ id, ...champs })),
-    list: vi.fn().mockResolvedValue({ data: [{ id: 'i1' }], total: 1 }),
+    list: vi.fn().mockResolvedValue({
+      data: [{ id: 'i1' }],
+      total: 1,
+      parStatut: { PLANIFIEE: 1, REALISEE: 0, ANNULEE: 0 },
+    }),
     findByIdComplet: vi.fn().mockResolvedValue(interventionExistante),
   } as unknown as InterventionsRepository;
   const utilisateurs = {
@@ -130,6 +134,7 @@ describe('InterventionsService.lister', () => {
       total: 1,
       page: 2,
       limit: 10,
+      parStatut: { PLANIFIEE: 1, REALISEE: 0, ANNULEE: 0 },
     });
   });
 });

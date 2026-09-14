@@ -88,7 +88,11 @@ export class InterventionsRepository {
   async list(
     filtre: FiltreInterventions,
     pagination: { page: number; limit: number },
-  ): Promise<{ data: Intervention[]; total: number }> {
+  ): Promise<{
+    data: Intervention[];
+    total: number;
+    parStatut: Record<StatutIntervention, number>;
+  }> {
     const where: Prisma.InterventionWhereInput = {
       ...(filtre.client
         ? { nomClient: { contains: filtre.client, mode: 'insensitive' } }
@@ -96,7 +100,7 @@ export class InterventionsRepository {
       ...(filtre.technicienId ? { technicienId: filtre.technicienId } : {}),
     };
 
-    const [data, total] = await Promise.all([
+    const [data, total, groupes] = await Promise.all([
       this.prisma.intervention.findMany({
         where,
         orderBy: { creeLe: 'desc' },
@@ -104,8 +108,22 @@ export class InterventionsRepository {
         take: pagination.limit,
       }),
       this.prisma.intervention.count({ where }),
+      this.prisma.intervention.groupBy({
+        by: ['statut'],
+        where,
+        _count: true,
+      }),
     ]);
 
-    return { data, total };
+    const parStatut: Record<StatutIntervention, number> = {
+      PLANIFIEE: 0,
+      REALISEE: 0,
+      ANNULEE: 0,
+    };
+    for (const groupe of groupes) {
+      parStatut[groupe.statut] = groupe._count;
+    }
+
+    return { data, total, parStatut };
   }
 }

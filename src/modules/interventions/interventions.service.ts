@@ -16,13 +16,17 @@ import {
   STATUT_INITIAL,
   transitionAutorisee,
 } from './domain/intervention.statut.js';
-import type { Intervention } from '../../generated/prisma/client.js';
+import type {
+  Intervention,
+  StatutIntervention,
+} from '../../generated/prisma/client.js';
 
 export interface PageInterventions {
   data: Intervention[];
   total: number;
   page: number;
   limit: number;
+  parStatut: Record<StatutIntervention, number>;
 }
 
 @Injectable()
@@ -58,11 +62,11 @@ export class InterventionsService {
   }
 
   async lister(dto: ListInterventionsDto): Promise<PageInterventions> {
-    const { data, total } = await this.repo.list(
+    const { data, total, parStatut } = await this.repo.list(
       { client: dto.client, technicienId: dto.technicienId },
       { page: dto.page, limit: dto.limit },
     );
-    return { data, total, page: dto.page, limit: dto.limit };
+    return { data, total, page: dto.page, limit: dto.limit, parStatut };
   }
 
   async detail(id: string): Promise<InterventionDetail> {

@@ -321,6 +321,11 @@ describe('Interventions - creation (e2e)', () => {
       .expect((res) => {
         expect(res.body.total).toBe(1);
         expect(res.body.data[0].nomClient).toBe(clientUnique);
+        expect(res.body.parStatut).toEqual({
+          PLANIFIEE: 1,
+          REALISEE: 0,
+          ANNULEE: 0,
+        });
       });
   });
 
