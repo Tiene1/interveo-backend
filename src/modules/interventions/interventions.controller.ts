@@ -1,7 +1,9 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
   Param,
   ParseUUIDPipe,
   Patch,
@@ -55,5 +57,11 @@ export class InterventionsController {
     @Body() dto: PatchInterventionDto,
   ): Promise<Intervention> {
     return this.service.patch(id, dto);
+  }
+
+  @Delete(':id')
+  @HttpCode(204)
+  supprimer(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
+    return this.service.supprimer(id);
   }
 }

@@ -6,6 +6,7 @@ import {
 import { InterventionsService } from './interventions.service.js';
 import type { InterventionsRepository } from './interventions.repository.js';
 import type { UtilisateursService } from '../utilisateurs/utilisateurs.service.js';
+import type { StockageFichiers } from '../../infrastructure/stockage/stockage-fichiers.interface.js';
 import type { CreateInterventionDto } from './dto/create-intervention.dto.js';
 
 const technicienActif = {
@@ -48,11 +49,21 @@ function build(
       parStatut: { PLANIFIEE: 1, REALISEE: 0, ANNULEE: 0 },
     }),
     findByIdComplet: vi.fn().mockResolvedValue(interventionExistante),
+    delete: vi.fn().mockResolvedValue(undefined),
   } as unknown as InterventionsRepository;
   const utilisateurs = {
     findById: vi.fn().mockResolvedValue(compteTechnicien),
   } as unknown as UtilisateursService;
-  return { service: new InterventionsService(repo, utilisateurs), repo };
+  const stockage = {
+    save: vi.fn().mockResolvedValue(undefined),
+    read: vi.fn().mockResolvedValue(Buffer.from([])),
+    delete: vi.fn().mockResolvedValue(undefined),
+  } as unknown as StockageFichiers;
+  return {
+    service: new InterventionsService(repo, utilisateurs, stockage),
+    repo,
+    stockage,
+  };
 }
 
 describe('InterventionsService.creer', () => {
@@ -267,5 +278,66 @@ describe('InterventionsService.patch', () => {
     await service.patch('i1', { statut: 'ANNULEE' });
 
     expect(repo.updateStatut).toHaveBeenCalledWith('i1', 'ANNULEE');
+  });
+});
+
+describe('InterventionsService.supprimer', () => {
+  it('supprime une intervention ANNULEE sans photos', async () => {
+    const { service, repo, stockage } = build(technicienActif, {
+      id: 'i1',
+      statut: 'ANNULEE',
+      photos: [],
+    });
+
+    await service.supprimer('i1');
+
+    expect(repo.delete).toHaveBeenCalledWith('i1');
+    expect(stockage.delete).not.toHaveBeenCalled();
+  });
+
+  it('supprime aussi les fichiers photo sur le disque avant de supprimer l intervention', async () => {
+    const { service, repo, stockage } = build(technicienActif, {
+      id: 'i1',
+      statut: 'ANNULEE',
+      photos: [
+        { cheminFichier: 'i1/a.jpg' },
+        { cheminFichier: 'i1/b.jpg' },
+      ],
+    });
+
+    await service.supprimer('i1');
+
+    expect(stockage.delete).toHaveBeenCalledWith('i1/a.jpg');
+    expect(stockage.delete).toHaveBeenCalledWith('i1/b.jpg');
+    expect(repo.delete).toHaveBeenCalledWith('i1');
+  });
+
+  it('404 si l intervention n existe pas', async () => {
+    const { service } = build(technicienActif, undefined);
+    await expect(service.supprimer('i1')).rejects.toBeInstanceOf(
+      NotFoundException,
+    );
+  });
+
+  it('409 si l intervention est PLANIFIEE (pas encore annulee)', async () => {
+    const { service } = build(technicienActif, {
+      id: 'i1',
+      statut: 'PLANIFIEE',
+      photos: [],
+    });
+    await expect(service.supprimer('i1')).rejects.toBeInstanceOf(
+      ConflictException,
+    );
+  });
+
+  it('409 si l intervention est REALISEE (preuve de travail a conserver)', async () => {
+    const { service } = build(technicienActif, {
+      id: 'i1',
+      statut: 'REALISEE',
+      photos: [],
+    });
+    await expect(service.supprimer('i1')).rejects.toBeInstanceOf(
+      ConflictException,
+    );
   });
 });

@@ -1,6 +1,7 @@
 import {
   BadRequestException,
   ConflictException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
@@ -16,6 +17,8 @@ import {
   STATUT_INITIAL,
   transitionAutorisee,
 } from './domain/intervention.statut.js';
+import { STOCKAGE_FICHIERS } from '../../infrastructure/stockage/stockage-fichiers.interface.js';
+import type { StockageFichiers } from '../../infrastructure/stockage/stockage-fichiers.interface.js';
 import type {
   Intervention,
   StatutIntervention,
@@ -34,6 +37,7 @@ export class InterventionsService {
   constructor(
     private readonly repo: InterventionsRepository,
     private readonly utilisateurs: UtilisateursService,
+    @Inject(STOCKAGE_FICHIERS) private readonly stockage: StockageFichiers,
   ) {}
 
   async creer(
@@ -88,6 +92,28 @@ export class InterventionsService {
       );
     }
     return this.repo.updateStatut(id, 'ANNULEE');
+  }
+
+  /**
+   * Suppression definitive, reservee aux interventions Annulees : une
+   * Realisee porte la preuve du travail effectue (photos, compte-rendu),
+   * une Planifiee peut deja etre en cache sur un appareil mobile (sa
+   * suppression casserait la synchro du technicien a la cloture).
+   */
+  async supprimer(id: string): Promise<void> {
+    const intervention = await this.repo.findByIdComplet(id);
+    if (!intervention) {
+      throw new NotFoundException('Intervention introuvable');
+    }
+    if (intervention.statut !== 'ANNULEE') {
+      throw new ConflictException(
+        `Une intervention ${intervention.statut} ne peut pas etre supprimee`,
+      );
+    }
+    for (const photo of intervention.photos) {
+      await this.stockage.delete(photo.cheminFichier);
+    }
+    await this.repo.delete(id);
   }
 
   async patch(id: string, dto: PatchInterventionDto): Promise<Intervention> {

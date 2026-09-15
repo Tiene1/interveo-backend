@@ -85,6 +85,11 @@ export class InterventionsRepository {
     return this.prisma.intervention.update({ where: { id }, data });
   }
 
+  /** Supprime l'intervention. Cascade Prisma sur ses photos (`onDelete: Cascade`). */
+  async delete(id: string): Promise<void> {
+    await this.prisma.intervention.delete({ where: { id } });
+  }
+
   async list(
     filtre: FiltreInterventions,
     pagination: { page: number; limit: number },

@@ -396,4 +396,62 @@ describe('Interventions - creation (e2e)', () => {
       .set('Authorization', `Bearer ${tokenTechnicien}`)
       .expect(403);
   });
+
+  it('DELETE /interventions/:id supprime une intervention ANNULEE', async () => {
+    const creee = await request(app.getHttpServer())
+      .post('/interventions')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send(payloadValide())
+      .expect(201);
+    const id = creee.body.id;
+
+    await request(app.getHttpServer())
+      .patch(`/interventions/${id}`)
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send({ statut: 'ANNULEE' })
+      .expect(200);
+
+    await request(app.getHttpServer())
+      .delete(`/interventions/${id}`)
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .expect(204);
+
+    await request(app.getHttpServer())
+      .get(`/interventions/${id}`)
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .expect(404);
+  });
+
+  it('DELETE /interventions/:id sur une PLANIFIEE renvoie 409', async () => {
+    const creee = await request(app.getHttpServer())
+      .post('/interventions')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send(payloadValide())
+      .expect(201);
+
+    return request(app.getHttpServer())
+      .delete(`/interventions/${creee.body.id}`)
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .expect(409);
+  });
+
+  it('DELETE /interventions/:id inconnue renvoie 404', () => {
+    return request(app.getHttpServer())
+      .delete('/interventions/00000000-0000-4000-8000-000000000000')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .expect(404);
+  });
+
+  it('DELETE /interventions/:id avec un jeton technicien renvoie 403', () => {
+    return request(app.getHttpServer())
+      .delete('/interventions/00000000-0000-4000-8000-000000000000')
+      .set('Authorization', `Bearer ${tokenTechnicien}`)
+      .expect(403);
+  });
+
+  it('DELETE /interventions/:id sans jeton renvoie 401', () => {
+    return request(app.getHttpServer())
+      .delete('/interventions/00000000-0000-4000-8000-000000000000')
+      .expect(401);
+  });
 });
