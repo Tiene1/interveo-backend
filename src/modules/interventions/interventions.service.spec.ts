@@ -78,10 +78,21 @@ describe('InterventionsService.creer', () => {
         telephone2: null,
         geolocalisation: null,
         motifSignale: null,
+        typeEquipement: null,
         technicienId: 't1',
         creeParId: 'dir1',
         statut: 'PLANIFIEE',
       }),
+    );
+  });
+
+  it('transmet typeEquipement quand il est fourni', async () => {
+    const { service, repo } = build();
+
+    await service.creer({ ...dto, typeEquipement: 'CLIMATISATION' }, 'dir1');
+
+    expect(repo.create).toHaveBeenCalledWith(
+      expect.objectContaining({ typeEquipement: 'CLIMATISATION' }),
     );
   });
 
@@ -222,6 +233,32 @@ describe('InterventionsService.patch', () => {
       telephone2: null,
       geolocalisation: null,
       motifSignale: null,
+    });
+  });
+
+  it('modifie typeEquipement quand une valeur valide est fournie', async () => {
+    const { service, repo } = build(technicienActif, {
+      id: 'i1',
+      statut: 'PLANIFIEE',
+    });
+
+    await service.patch('i1', { typeEquipement: 'GROUPE_ELECTROGENE' });
+
+    expect(repo.updateChamps).toHaveBeenCalledWith('i1', {
+      typeEquipement: 'GROUPE_ELECTROGENE',
+    });
+  });
+
+  it('efface typeEquipement quand null est envoye explicitement', async () => {
+    const { service, repo } = build(technicienActif, {
+      id: 'i1',
+      statut: 'PLANIFIEE',
+    });
+
+    await service.patch('i1', { typeEquipement: null });
+
+    expect(repo.updateChamps).toHaveBeenCalledWith('i1', {
+      typeEquipement: null,
     });
   });
 

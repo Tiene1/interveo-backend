@@ -214,6 +214,56 @@ describe('Interventions - creation (e2e)', () => {
       });
   });
 
+  it('POST /interventions avec typeEquipement le renvoie sur le detail', async () => {
+    const creee = await request(app.getHttpServer())
+      .post('/interventions')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send({ ...payloadValide(), typeEquipement: 'CLIMATISATION' })
+      .expect(201);
+    expect(creee.body.typeEquipement).toBe('CLIMATISATION');
+
+    const detail = await request(app.getHttpServer())
+      .get(`/interventions/${creee.body.id}`)
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .expect(200);
+    expect(detail.body.typeEquipement).toBe('CLIMATISATION');
+  });
+
+  it('PATCH /interventions/:id modifie puis efface typeEquipement (null explicite)', async () => {
+    const creee = await request(app.getHttpServer())
+      .post('/interventions')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send(payloadValide())
+      .expect(201);
+    const id = creee.body.id;
+
+    await request(app.getHttpServer())
+      .patch(`/interventions/${id}`)
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send({ typeEquipement: 'INSTALLATION_ELECTRIQUE' })
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.typeEquipement).toBe('INSTALLATION_ELECTRIQUE');
+      });
+
+    return request(app.getHttpServer())
+      .patch(`/interventions/${id}`)
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send({ typeEquipement: null })
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.typeEquipement).toBeNull();
+      });
+  });
+
+  it('POST /interventions avec un typeEquipement invalide renvoie 400', () => {
+    return request(app.getHttpServer())
+      .post('/interventions')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send({ ...payloadValide(), typeEquipement: 'INEXISTANT' })
+      .expect(400);
+  });
+
   it('PATCH /interventions/:id avec un technicienId inexistant renvoie 400', async () => {
     const creee = await request(app.getHttpServer())
       .post('/interventions')

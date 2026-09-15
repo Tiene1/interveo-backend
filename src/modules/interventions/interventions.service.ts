@@ -58,6 +58,7 @@ export class InterventionsService {
       telephone2: dto.telephone2 ?? null,
       geolocalisation: dto.geolocalisation ?? null,
       motifSignale: dto.motifSignale ?? null,
+      typeEquipement: dto.typeEquipement ?? null,
       datePrevue: dto.datePrevue,
       technicienId: dto.technicienId,
       creeParId,
@@ -173,6 +174,9 @@ export class InterventionsService {
       }),
       ...(champs.motifSignale !== undefined && {
         motifSignale: champs.motifSignale || null,
+      }),
+      ...(champs.typeEquipement !== undefined && {
+        typeEquipement: champs.typeEquipement,
       }),
       ...(champs.datePrevue !== undefined && {
         datePrevue: champs.datePrevue,

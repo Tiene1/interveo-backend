@@ -518,6 +518,15 @@
           "motifSignale": {
             "type": "string"
           },
+          "typeEquipement": {
+            "type": "string",
+            "enum": [
+              "CLIMATISATION",
+              "GROUPE_ELECTROGENE",
+              "INSTALLATION_ELECTRIQUE",
+              "AUTRE"
+            ]
+          },
           "datePrevue": {
             "format": "date-time",
             "type": "string"
@@ -561,6 +570,16 @@
           },
           "motifSignale": {
             "type": "string"
+          },
+          "typeEquipement": {
+            "type": "string",
+            "nullable": true,
+            "enum": [
+              "CLIMATISATION",
+              "GROUPE_ELECTROGENE",
+              "INSTALLATION_ELECTRIQUE",
+              "AUTRE"
+            ]
           },
           "datePrevue": {
             "format": "date-time",

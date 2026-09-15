@@ -4,6 +4,7 @@ import type {
   Intervention,
   Prisma,
   StatutIntervention,
+  TypeEquipement,
 } from '../../generated/prisma/client.js';
 
 export interface CreerInterventionData {
@@ -13,6 +14,7 @@ export interface CreerInterventionData {
   telephone2: string | null;
   geolocalisation: string | null;
   motifSignale: string | null;
+  typeEquipement: TypeEquipement | null;
   datePrevue: Date;
   technicienId: string;
   creeParId: string;
@@ -26,6 +28,7 @@ export interface ModifierInterventionData {
   telephone2?: string | null;
   geolocalisation?: string | null;
   motifSignale?: string | null;
+  typeEquipement?: TypeEquipement | null;
   datePrevue?: Date;
   technicienId?: string;
 }

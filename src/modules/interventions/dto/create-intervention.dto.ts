@@ -1,11 +1,13 @@
 import { Type } from 'class-transformer';
 import {
   IsDate,
+  IsEnum,
   IsNotEmpty,
   IsOptional,
   IsString,
   IsUUID,
 } from 'class-validator';
+import { TypeEquipement } from '../../../generated/prisma/client.js';
 
 export class CreateInterventionDto {
   @IsString()
@@ -34,6 +36,10 @@ export class CreateInterventionDto {
   @IsString()
   @IsNotEmpty()
   motifSignale?: string;
+
+  @IsOptional()
+  @IsEnum(TypeEquipement)
+  typeEquipement?: TypeEquipement;
 
   @Type(() => Date)
   @IsDate()
