@@ -1,9 +1,9 @@
 import { Injectable } from '@nestjs/common';
 import { SyncRepository } from './sync.repository.js';
+import type { InterventionAvecPhotos } from './sync.repository.js';
 import { PullSyncDto } from './dto/pull-sync.dto.js';
 import { ClotureItemDto } from './dto/push-sync.dto.js';
 import { transitionAutorisee } from '../interventions/domain/intervention.statut.js';
-import type { Intervention } from '../../generated/prisma/client.js';
 import type { JwtPayload } from '../auth/auth.service.js';
 
 export interface ResultatCloture {
@@ -16,7 +16,10 @@ export interface ResultatCloture {
 export class SyncService {
   constructor(private readonly repo: SyncRepository) {}
 
-  pull(dto: PullSyncDto, utilisateur: JwtPayload): Promise<Intervention[]> {
+  pull(
+    dto: PullSyncDto,
+    utilisateur: JwtPayload,
+  ): Promise<InterventionAvecPhotos[]> {
     return this.repo.pull(utilisateur.sub, dto.depuis);
   }
 

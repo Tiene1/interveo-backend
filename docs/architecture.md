@@ -177,6 +177,8 @@ Demande de Cédric côté web : pouvoir supprimer définitivement une interventi
 - **Résolution de conflit** : si l'intervention est déjà `ANNULEE` côté serveur, la clôture est rejetée (`CONFLIT`), non appliquée, et signalée au technicien. Le `misAJourLe` serveur fait autorité.
 - Les photos sont envoyées séparément via `POST /interventions/:id/photos` pendant la même passe de synchro.
 
+**Métadonnées de photos incluses au pull (2026-09-15)** : `GET /sync/interventions` renvoie désormais, pour chaque intervention, `photos: [{ id, categorie }]` — jamais le fichier ni son chemin. Corrige un bug réel signalé par Cédric (constaté après déconnexion/reconnexion mobile, US4.3) : le mobile ne pull historiquement que les champs de l'intervention, jamais ses photos, dette déjà connue mais restée invisible tant qu'aucun mécanisme ne vidait le cache local. Une fois la déconnexion mobile ajoutée (qui vide `interventions`+`photos` locales), une intervention déjà réalisée réapparaissait après reconnexion mais sans ses photos — plus aucun moyen de savoir qu'elles existaient encore côté serveur. Ces métadonnées permettent au mobile de repeupler ses lignes `photos` locales (sans fichier) et de re-télécharger chaque image à la demande via `GET /photos/:id` (cf. `mobile/docs/architecture.md` pour le mécanisme complet côté app).
+
 ### Stockage des photos
 - `StockageFichiers` (interface) : `save(buffer, nom): chemin`, `read(chemin): buffer`, `delete(chemin)`.
 - Implémentation `stockage-fichiers.fs.ts` : écrit sous `PHOTOS_DIR` (variable d'environnement, monté comme volume Docker sur le VPS). Nom de fichier = `<interventionId>/<uuid>.<ext>`.

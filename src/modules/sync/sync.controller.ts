@@ -15,10 +15,10 @@ import {
   SyncService,
   type ResultatCloture,
 } from './sync.service.js';
+import type { InterventionAvecPhotos } from './sync.repository.js';
 import { PullSyncDto } from './dto/pull-sync.dto.js';
 import { ClotureItemDto } from './dto/push-sync.dto.js';
 import type { JwtPayload } from '../auth/auth.service.js';
-import type { Intervention } from '../../generated/prisma/client.js';
 
 @ApiTags('Synchronisation')
 @ApiBearerAuth('jwt')
@@ -31,7 +31,7 @@ export class SyncController {
   pull(
     @Query() dto: PullSyncDto,
     @CurrentUser() user: JwtPayload,
-  ): Promise<Intervention[]> {
+  ): Promise<InterventionAvecPhotos[]> {
     return this.service.pull(dto, user);
   }
 

@@ -7,6 +7,11 @@ import { HttpExceptionFilter } from './../src/common/filters/http-exception.filt
 
 // Dépend du seed : kouassi / directeur123, koffi / technicien123.
 
+const PNG_1PX = Buffer.from(
+  'iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mP8z8BQDwAEhQGAhKmMIQAAAABJRU5ErkJggg==',
+  'base64',
+);
+
 describe('Sync - pull (e2e)', () => {
   let app: INestApplication<App>;
   let tokenDirecteur: string;
@@ -98,6 +103,29 @@ describe('Sync - pull (e2e)', () => {
         expect(
           res.body.some((i: { id: string }) => i.id === idsCrees[0]),
         ).toBe(false);
+      });
+  });
+
+  it('inclut les photos (id, categorie) de chaque intervention, jamais le fichier', async () => {
+    await request(app.getHttpServer())
+      .post(`/interventions/${idsCrees[1]}/photos`)
+      .set('Authorization', `Bearer ${tokenKoffi}`)
+      .field('categorie', 'AVANT')
+      .attach('fichier', PNG_1PX, { filename: '1.png', contentType: 'image/png' })
+      .expect(201);
+
+    return request(app.getHttpServer())
+      .get('/sync/interventions')
+      .set('Authorization', `Bearer ${tokenKoffi}`)
+      .expect(200)
+      .expect((res) => {
+        const intervention = res.body.find(
+          (i: { id: string }) => i.id === idsCrees[1],
+        );
+        expect(intervention.photos).toHaveLength(1);
+        expect(intervention.photos[0]).toMatchObject({ categorie: 'AVANT' });
+        expect(typeof intervention.photos[0].id).toBe('string');
+        expect(intervention.photos[0]).not.toHaveProperty('cheminFichier');
       });
   });
 
