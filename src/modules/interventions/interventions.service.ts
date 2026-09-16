@@ -80,6 +80,7 @@ export class InterventionsService {
         statut: dto.statut,
         dateDebut: dto.dateDebut,
         dateFin: dto.dateFin,
+        motCle: dto.motCle,
       },
       { page: dto.page, limit: dto.limit },
     );

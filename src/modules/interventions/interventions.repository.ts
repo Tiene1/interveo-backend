@@ -39,6 +39,7 @@ export interface FiltreInterventions {
   statut?: StatutIntervention;
   dateDebut?: Date;
   dateFin?: Date;
+  motCle?: string;
 }
 
 /** Minuit le lendemain de `date` : borne haute exclusive couvrant toute la journée de `date`. */
@@ -124,6 +125,16 @@ export class InterventionsRepository {
       ...(filtre.statut ? { statut: filtre.statut } : {}),
       ...(Object.keys(filtreDatePrevue).length > 0
         ? { datePrevue: filtreDatePrevue }
+        : {}),
+      ...(filtre.motCle
+        ? {
+            OR: [
+              { adresse: { contains: filtre.motCle, mode: 'insensitive' } },
+              { motifSignale: { contains: filtre.motCle, mode: 'insensitive' } },
+              { problemeConstate: { contains: filtre.motCle, mode: 'insensitive' } },
+              { travauxRealises: { contains: filtre.motCle, mode: 'insensitive' } },
+            ],
+          }
         : {}),
     };
 

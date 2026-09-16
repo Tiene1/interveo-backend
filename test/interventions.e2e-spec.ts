@@ -436,6 +436,36 @@ describe('Interventions - creation (e2e)', () => {
       });
   });
 
+  it('GET /interventions?motCle= trouve une intervention par son adresse', async () => {
+    const adresseUnique = `Rue MotCle ${Date.now()}, Yopougon`;
+    const clientUnique = `MotCle-${Date.now()}`;
+    await request(app.getHttpServer())
+      .post('/interventions')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send({ ...payloadValide(), nomClient: clientUnique, adresse: adresseUnique })
+      .expect(201);
+
+    return request(app.getHttpServer())
+      .get(`/interventions?motCle=${encodeURIComponent('MotCle')}`)
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .expect(200)
+      .expect((res) => {
+        expect(
+          res.body.data.some((i: { nomClient: string }) => i.nomClient === clientUnique),
+        ).toBe(true);
+      });
+  });
+
+  it('GET /interventions?motCle= ne trouve rien sur un mot-cle absent de tous les champs cherches', () => {
+    return request(app.getHttpServer())
+      .get(`/interventions?motCle=${encodeURIComponent(`introuvable-${Date.now()}`)}`)
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.total).toBe(0);
+      });
+  });
+
   it('GET /interventions?dateDebut=&dateFin= renvoie 400 si dateDebut > dateFin', () => {
     return request(app.getHttpServer())
       .get('/interventions?dateDebut=2026-09-20&dateFin=2026-09-01')

@@ -196,6 +196,15 @@
               "format": "date-time",
               "type": "string"
             }
+          },
+          {
+            "name": "motCle",
+            "required": false,
+            "in": "query",
+            "description": "US3.8. Recherche libre sur adresse/motifSignale/problemeConstate/travauxRealises.",
+            "schema": {
+              "type": "string"
+            }
           }
         ],
         "responses": {

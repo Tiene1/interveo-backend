@@ -154,6 +154,7 @@ describe('InterventionsService.lister', () => {
         statut: undefined,
         dateDebut: undefined,
         dateFin: undefined,
+        motCle: undefined,
       },
       { page: 2, limit: 10 },
     );
@@ -178,6 +179,7 @@ describe('InterventionsService.lister', () => {
         statut: 'REALISEE',
         dateDebut: undefined,
         dateFin: undefined,
+        motCle: undefined,
       },
       { page: 1, limit: 20 },
     );
@@ -197,6 +199,25 @@ describe('InterventionsService.lister', () => {
         statut: undefined,
         dateDebut,
         dateFin,
+        motCle: undefined,
+      },
+      { page: 1, limit: 20 },
+    );
+  });
+
+  it('transmet motCle au repository quand il est fourni', async () => {
+    const { service, repo } = build();
+
+    await service.lister({ motCle: 'climatisation', page: 1, limit: 20 });
+
+    expect(repo.list).toHaveBeenCalledWith(
+      {
+        client: undefined,
+        technicienId: undefined,
+        statut: undefined,
+        dateDebut: undefined,
+        dateFin: undefined,
+        motCle: 'climatisation',
       },
       { page: 1, limit: 20 },
     );

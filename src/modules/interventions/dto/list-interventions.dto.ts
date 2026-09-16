@@ -28,4 +28,10 @@ export class ListInterventionsDto extends PaginationDto {
   @Type(() => Date)
   @IsDate()
   dateFin?: Date;
+
+  /** US3.8. Recherche libre sur adresse/motifSignale/problemeConstate/travauxRealises. */
+  @IsOptional()
+  @IsString()
+  @IsNotEmpty()
+  motCle?: string;
 }
