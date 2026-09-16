@@ -80,7 +80,7 @@ backend/
         guards/roles.guard.ts
       utilisateurs/
         utilisateurs.module.ts
-        utilisateurs.controller.ts   (GET /utilisateurs, POST /utilisateurs, PATCH /utilisateurs/:id/desactiver)
+        utilisateurs.controller.ts   (GET /utilisateurs, POST /utilisateurs, PATCH /utilisateurs/:id/desactiver, PATCH /utilisateurs/:id/reinitialiser-mot-de-passe)
         utilisateurs.service.ts
         utilisateurs.repository.ts
         domain/utilisateur.rules.ts  (actif, rôle)
@@ -117,7 +117,7 @@ backend/
 | Module | Couches présentes | User Stories MVP |
 |---|---|---|
 | `auth` | présentation, application, infra (via `utilisateurs`) | US4.1, US4.2, US4.4 |
-| `utilisateurs` | présentation, application, domaine, infra | US1.3, US3.3 (liste du filtre), US4.5 (création), US4.7 (désactivation), seed |
+| `utilisateurs` | présentation, application, domaine, infra | US1.3, US3.3 (liste du filtre), US4.5 (création), US4.7 (désactivation), US4.9 (réinitialisation mot de passe), seed |
 | `interventions` | présentation, application, domaine, infra | US1.1, US1.7, US1.8, US3.1, US3.2, US3.3, US3.4, US3.5, US3.6, US3.8, US3.10 |
 | `photos` | présentation, application, infra | US2.7, US2.8, US3.6, US3.7 |
 | `sync` | présentation, application, infra (via `interventions`, `photos`) | US2.1, US2.5, US2.6, US2.9, US2.10, US2.11 |
@@ -135,6 +135,7 @@ US2.2 et US2.3 (affichage côté mobile) n'ont pas d'endpoint dédié : les donn
 | GET | `/utilisateurs` | DIRECTEUR | `?role=TECHNICIEN&actif=true` | US1.3, US3.3 |
 | POST | `/utilisateurs` | DIRECTEUR | `{ nom, identifiant, motDePasse }`, crée toujours un compte TECHNICIEN | US4.5 |
 | PATCH | `/utilisateurs/:id/desactiver` | DIRECTEUR | pas de corps, réservé aux comptes TECHNICIEN, idempotent | US4.7 |
+| PATCH | `/utilisateurs/:id/reinitialiser-mot-de-passe` | DIRECTEUR | `{ motDePasse }` (`@MinLength(8)`), réservé aux comptes TECHNICIEN | US4.9 |
 | POST | `/interventions` | DIRECTEUR | `{ nomClient, adresse, telephone1, telephone2?, geolocalisation?, motifSignale?, datePrevue, technicienId }` | US1.1, US1.8 |
 | GET | `/interventions` | DIRECTEUR | `?client=&technicienId=&statut=&dateDebut=&dateFin=&motCle=&page=` (tri par `creeLe` décroissant), réponse enrichie d'un `parStatut` (cf. note ci-dessous) | US3.1, US3.2, US3.3, US3.4, US3.5, US3.8 |
 | GET | `/interventions/export` | DIRECTEUR | mêmes filtres que `GET /interventions`, sans pagination, technicien inclus (`{ nom }`), déclarée avant `:id` (cf. note ci-dessous) | US3.10 |
@@ -219,6 +220,11 @@ Troisième ticket du bloc « Comptes techniciens », juste après US4.5. `PATCH 
 
 **Aucune logique d'authentification nouvelle** : `AuthService.login()` et `AuthService.moi()` vérifiaient déjà `!utilisateur.actif` (garde-fou présent depuis le socle MVP, cf. section auth) mais rien ne mettait jamais `actif` à `false` avant ce ticket. Désactiver un compte coupe donc immédiatement l'accès : connexions futures rejetées (401 générique, indiscernable d'un mauvais mot de passe — aucune fuite d'information sur l'état du compte) **et** session déjà ouverte invalidée au prochain appel de `GET /auth/moi` (le JWT reste valide 30 jours côté signature, mais `moi()` re-vérifie `actif` en base à chaque appel).
 
+### Réinitialisation de mot de passe (US4.9, promu le 2026-09-16)
+Quatrième et dernier ticket du bloc « Comptes techniciens », ferme le backlog Nice to have initial. `PATCH /utilisateurs/:id/reinitialiser-mot-de-passe` (`{ motDePasse }`), même schéma d'action dédiée qu'US4.7 (pas de dispatcher générique). `ReinitialiserMotDePasseDto.motDePasse` reprend `@MinLength(8)`, exactement la même règle que `CreateUtilisateurDto` (US4.5) — dupliquée dans un second DTO plutôt que factorisée : trois lignes ne justifient pas une abstraction commune.
+
+**Refactor associé** (justifié par la duplication réelle entre `desactiver()` et cette nouvelle méthode, pas un embellissement gratuit) : la paire de vérifications « `findById` puis `role === TECHNICIEN` sinon 404/400 », jusque-là inline dans `desactiver()`, est extraite en `UtilisateursService.trouverTechnicienOuEchouer()` (méthode privée), réutilisée par les deux méthodes. Hash via `argon2.hash()`, comme partout ailleurs dans ce module. **Limitation connue, pas un oubli** : aucune révocation des JWT déjà émis — un jeton signé avant la réinitialisation reste valide jusqu'à son expiration (30 jours), cohérent avec l'architecture JWT sans état déjà actée pour ce projet (pensée pour l'usage mobile hors ligne prolongé). Si une révocation immédiate devient un besoin réel, elle nécessiterait une liste de révocation ou un changement de secret par utilisateur — non nécessaire pour l'usage actuel (le directeur réinitialise un mot de passe oublié, pas en réponse à un compromis de sécurité urgent).
+
 ### Configuration (`.env`)
 `DATABASE_URL`, `JWT_SECRET`, `PHOTOS_DIR`, `PORT`. Aucune de ces valeurs en dur dans le code. `.env.example` versionné, `.env` non versionné.
 
@@ -230,7 +236,7 @@ Troisième ticket du bloc « Comptes techniciens », juste après US4.5. `PATCH 
 - Pas d'email, SMS, push.
 - Pas de génération PDF côté backend : l'export PDF (US3.9) est construit, mais entièrement côté web (`jspdf`, aucun endpoint dédié) — `GET /interventions/:id` existant suffisait. L'export CSV (US3.10) est construit, cf. section 4 — en JSON brut, la génération CSV elle-même vit côté web.
 - Pas de WebSocket.
-- Pas d'endpoint de réinitialisation de mot de passe (US4.9 Nice to have, non construite). US4.6 (lister) ne nécessitait aucun endpoint nouveau — `GET /utilisateurs` existant suffisait. US4.5 (créer) et US4.7 (désactiver) sont construits, cf. section 4.
+- US4.6 (lister) ne nécessitait aucun endpoint nouveau — `GET /utilisateurs` existant suffisait. US4.5 (créer), US4.7 (désactiver) et US4.9 (réinitialiser le mot de passe) sont construits, cf. section 4. **Le bloc « Comptes techniciens » est désormais complet.**
 - Champs `motifSignale` et `typeEquipement` : présents en base, **nullable**, jamais exigés par un endpoint MVP.
 
 ---

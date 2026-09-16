@@ -11,6 +11,7 @@ import {
 } from './utilisateurs.repository.js';
 import { ListUtilisateursDto } from './dto/list-utilisateurs.dto.js';
 import { CreateUtilisateurDto } from './dto/create-utilisateur.dto.js';
+import { ReinitialiserMotDePasseDto } from './dto/reinitialiser-mot-de-passe.dto.js';
 import type { Utilisateur } from '../../generated/prisma/client.js';
 
 @Injectable()
@@ -48,15 +49,30 @@ export class UtilisateursService {
 
   /** US4.7. Reserve aux comptes TECHNICIEN (jamais un DIRECTEUR via cet ecran). Idempotent. */
   async desactiver(id: string): Promise<UtilisateurPublic> {
+    await this.trouverTechnicienOuEchouer(id);
+    return this.repo.updateActif(id, false);
+  }
+
+  /** US4.9. Reserve aux comptes TECHNICIEN, meme seuil de mot de passe que la creation (US4.5). */
+  async reinitialiserMotDePasse(
+    id: string,
+    dto: ReinitialiserMotDePasseDto,
+  ): Promise<UtilisateurPublic> {
+    await this.trouverTechnicienOuEchouer(id);
+    const motDePasseHash = await argon2.hash(dto.motDePasse);
+    return this.repo.updateMotDePasseHash(id, motDePasseHash);
+  }
+
+  private async trouverTechnicienOuEchouer(id: string): Promise<Utilisateur> {
     const utilisateur = await this.repo.findById(id);
     if (!utilisateur) {
       throw new NotFoundException('Utilisateur introuvable');
     }
     if (utilisateur.role !== 'TECHNICIEN') {
       throw new BadRequestException(
-        'Seuls les comptes techniciens peuvent etre desactives',
+        'Seuls les comptes techniciens sont geres par cet ecran',
       );
     }
-    return this.repo.updateActif(id, false);
+    return utilisateur;
   }
 }

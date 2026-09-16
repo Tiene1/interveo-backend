@@ -204,4 +204,82 @@ describe('Utilisateurs (e2e)', () => {
       .patch(`/utilisateurs/${directeurId}/desactiver`)
       .expect(401);
   });
+
+  it('PATCH /utilisateurs/:id/reinitialiser-mot-de-passe (directeur) change le mot de passe d un TECHNICIEN', async () => {
+    const identifiant = `reinit-${Date.now()}`;
+    const creation = await request(app.getHttpServer())
+      .post('/utilisateurs')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send({ nom: 'A Reinitialiser', identifiant, motDePasse: 'ancienMotDePasse1' })
+      .expect(201);
+
+    await request(app.getHttpServer())
+      .patch(`/utilisateurs/${creation.body.id}/reinitialiser-mot-de-passe`)
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send({ motDePasse: 'nouveauMotDePasse1' })
+      .expect(200)
+      .expect((res) => {
+        expect(res.body).toMatchObject({ id: creation.body.id });
+        expect(res.body).not.toHaveProperty('motDePasseHash');
+      });
+
+    await request(app.getHttpServer())
+      .post('/auth/login')
+      .send({ identifiant, motDePasse: 'ancienMotDePasse1' })
+      .expect(401);
+
+    return request(app.getHttpServer())
+      .post('/auth/login')
+      .send({ identifiant, motDePasse: 'nouveauMotDePasse1' })
+      .expect(200)
+      .expect((res) => {
+        expect(res.body).toHaveProperty('accessToken');
+      });
+  });
+
+  it('PATCH /utilisateurs/:id/reinitialiser-mot-de-passe renvoie 400 si le mot de passe fait moins de 8 caracteres', async () => {
+    const identifiant = `reinit-court-${Date.now()}`;
+    const creation = await request(app.getHttpServer())
+      .post('/utilisateurs')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send({ nom: 'Court', identifiant, motDePasse: 'motdepasse123' })
+      .expect(201);
+
+    return request(app.getHttpServer())
+      .patch(`/utilisateurs/${creation.body.id}/reinitialiser-mot-de-passe`)
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send({ motDePasse: '1234567' })
+      .expect(400);
+  });
+
+  it('PATCH /utilisateurs/:id/reinitialiser-mot-de-passe renvoie 400 sur le compte DIRECTEUR', () => {
+    return request(app.getHttpServer())
+      .patch(`/utilisateurs/${directeurId}/reinitialiser-mot-de-passe`)
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send({ motDePasse: 'motdepasse123' })
+      .expect(400);
+  });
+
+  it('PATCH /utilisateurs/:id/reinitialiser-mot-de-passe renvoie 404 si l utilisateur n existe pas', () => {
+    return request(app.getHttpServer())
+      .patch('/utilisateurs/00000000-0000-0000-0000-000000000000/reinitialiser-mot-de-passe')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send({ motDePasse: 'motdepasse123' })
+      .expect(404);
+  });
+
+  it('PATCH /utilisateurs/:id/reinitialiser-mot-de-passe avec un jeton technicien renvoie 403', () => {
+    return request(app.getHttpServer())
+      .patch(`/utilisateurs/${directeurId}/reinitialiser-mot-de-passe`)
+      .set('Authorization', `Bearer ${tokenTechnicien}`)
+      .send({ motDePasse: 'motdepasse123' })
+      .expect(403);
+  });
+
+  it('PATCH /utilisateurs/:id/reinitialiser-mot-de-passe sans jeton renvoie 401', () => {
+    return request(app.getHttpServer())
+      .patch(`/utilisateurs/${directeurId}/reinitialiser-mot-de-passe`)
+      .send({ motDePasse: 'motdepasse123' })
+      .expect(401);
+  });
 });

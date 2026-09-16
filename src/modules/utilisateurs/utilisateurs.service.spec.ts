@@ -107,3 +107,46 @@ describe('UtilisateursService.desactiver', () => {
     expect(repo.updateActif).not.toHaveBeenCalled();
   });
 });
+
+describe('UtilisateursService.reinitialiserMotDePasse', () => {
+  it('hash le nouveau mot de passe, jamais transmis en clair au repository', async () => {
+    const repo = {
+      findById: vi.fn().mockResolvedValue({ id: 'u1', role: 'TECHNICIEN' }),
+      updateMotDePasseHash: vi.fn().mockResolvedValue({ id: 'u1' }),
+    } as unknown as UtilisateursRepository;
+    const service = new UtilisateursService(repo);
+
+    const res = await service.reinitialiserMotDePasse('u1', { motDePasse: 'nouveaumdp123' });
+
+    expect(repo.updateMotDePasseHash).toHaveBeenCalledWith('u1', expect.any(String));
+    const hashTransmis = vi.mocked(repo.updateMotDePasseHash).mock.calls[0][1];
+    expect(hashTransmis).not.toBe('nouveaumdp123');
+    expect(res).toEqual({ id: 'u1' });
+  });
+
+  it('404 si l utilisateur n existe pas', async () => {
+    const repo = {
+      findById: vi.fn().mockResolvedValue(null),
+      updateMotDePasseHash: vi.fn(),
+    } as unknown as UtilisateursRepository;
+    const service = new UtilisateursService(repo);
+
+    await expect(
+      service.reinitialiserMotDePasse('inconnu', { motDePasse: 'nouveaumdp123' }),
+    ).rejects.toThrow(NotFoundException);
+    expect(repo.updateMotDePasseHash).not.toHaveBeenCalled();
+  });
+
+  it('400 si le compte n est pas un TECHNICIEN', async () => {
+    const repo = {
+      findById: vi.fn().mockResolvedValue({ id: 'u1', role: 'DIRECTEUR' }),
+      updateMotDePasseHash: vi.fn(),
+    } as unknown as UtilisateursRepository;
+    const service = new UtilisateursService(repo);
+
+    await expect(
+      service.reinitialiserMotDePasse('u1', { motDePasse: 'nouveaumdp123' }),
+    ).rejects.toThrow(BadRequestException);
+    expect(repo.updateMotDePasseHash).not.toHaveBeenCalled();
+  });
+});

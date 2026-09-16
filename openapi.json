@@ -191,6 +191,51 @@
         ]
       }
     },
+    "/utilisateurs/{id}/reinitialiser-mot-de-passe": {
+      "patch": {
+        "operationId": "UtilisateursController_reinitialiserMotDePasse",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ReinitialiserMotDePasseDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "tags": [
+          "Utilisateurs"
+        ]
+      }
+    },
     "/interventions": {
       "get": {
         "operationId": "InterventionsController_lister",
@@ -746,6 +791,18 @@
         "required": [
           "nom",
           "identifiant",
+          "motDePasse"
+        ]
+      },
+      "ReinitialiserMotDePasseDto": {
+        "type": "object",
+        "properties": {
+          "motDePasse": {
+            "type": "string",
+            "minLength": 8
+          }
+        },
+        "required": [
           "motDePasse"
         ]
       },

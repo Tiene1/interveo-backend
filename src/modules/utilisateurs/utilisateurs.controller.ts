@@ -13,6 +13,7 @@ import { Roles } from '../auth/decorators/roles.decorator.js';
 import { UtilisateursService } from './utilisateurs.service.js';
 import { ListUtilisateursDto } from './dto/list-utilisateurs.dto.js';
 import { CreateUtilisateurDto } from './dto/create-utilisateur.dto.js';
+import { ReinitialiserMotDePasseDto } from './dto/reinitialiser-mot-de-passe.dto.js';
 import type { UtilisateurPublic } from './utilisateurs.repository.js';
 
 @ApiTags('Utilisateurs')
@@ -37,5 +38,13 @@ export class UtilisateursController {
     @Param('id', ParseUUIDPipe) id: string,
   ): Promise<UtilisateurPublic> {
     return this.service.desactiver(id);
+  }
+
+  @Patch(':id/reinitialiser-mot-de-passe')
+  reinitialiserMotDePasse(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() dto: ReinitialiserMotDePasseDto,
+  ): Promise<UtilisateurPublic> {
+    return this.service.reinitialiserMotDePasse(id, dto);
   }
 }

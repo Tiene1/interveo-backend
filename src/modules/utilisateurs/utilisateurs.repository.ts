@@ -66,4 +66,12 @@ export class UtilisateursRepository {
       select: CHAMPS_PUBLICS,
     });
   }
+
+  updateMotDePasseHash(id: string, motDePasseHash: string): Promise<UtilisateurPublic> {
+    return this.prisma.utilisateur.update({
+      where: { id },
+      data: { motDePasseHash },
+      select: CHAMPS_PUBLICS,
+    });
+  }
 }
