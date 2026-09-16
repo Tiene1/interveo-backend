@@ -8,7 +8,9 @@ import {
 import { UtilisateursService } from '../utilisateurs/utilisateurs.service.js';
 import {
   InterventionsRepository,
+  type FiltreInterventions,
   type InterventionDetail,
+  type InterventionPourExport,
 } from './interventions.repository.js';
 import { CreateInterventionDto } from './dto/create-intervention.dto.js';
 import { ListInterventionsDto } from './dto/list-interventions.dto.js';
@@ -67,24 +69,34 @@ export class InterventionsService {
   }
 
   async lister(dto: ListInterventionsDto): Promise<PageInterventions> {
+    const filtre = this.validerFiltre(dto);
+
+    const { data, total, parStatut } = await this.repo.list(filtre, {
+      page: dto.page,
+      limit: dto.limit,
+    });
+    return { data, total, page: dto.page, limit: dto.limit, parStatut };
+  }
+
+  /** US3.10. Meme filtre que `lister()`, sans pagination, pour l'export CSV. */
+  async exporter(dto: ListInterventionsDto): Promise<InterventionPourExport[]> {
+    return this.repo.listPourExport(this.validerFiltre(dto));
+  }
+
+  private validerFiltre(dto: ListInterventionsDto): FiltreInterventions {
     if (dto.dateDebut && dto.dateFin && dto.dateDebut > dto.dateFin) {
       throw new BadRequestException(
         'La date de debut ne peut pas etre posterieure a la date de fin',
       );
     }
-
-    const { data, total, parStatut } = await this.repo.list(
-      {
-        client: dto.client,
-        technicienId: dto.technicienId,
-        statut: dto.statut,
-        dateDebut: dto.dateDebut,
-        dateFin: dto.dateFin,
-        motCle: dto.motCle,
-      },
-      { page: dto.page, limit: dto.limit },
-    );
-    return { data, total, page: dto.page, limit: dto.limit, parStatut };
+    return {
+      client: dto.client,
+      technicienId: dto.technicienId,
+      statut: dto.statut,
+      dateDebut: dto.dateDebut,
+      dateFin: dto.dateFin,
+      motCle: dto.motCle,
+    };
   }
 
   async detail(id: string): Promise<InterventionDetail> {

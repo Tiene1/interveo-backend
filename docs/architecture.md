@@ -118,7 +118,7 @@ backend/
 |---|---|---|
 | `auth` | présentation, application, infra (via `utilisateurs`) | US4.1, US4.2, US4.4 |
 | `utilisateurs` | présentation, application, domaine, infra | US1.3, US3.3 (liste du filtre), seed |
-| `interventions` | présentation, application, domaine, infra | US1.1, US1.7, US1.8, US3.1, US3.2, US3.3, US3.4, US3.5, US3.6, US3.8 |
+| `interventions` | présentation, application, domaine, infra | US1.1, US1.7, US1.8, US3.1, US3.2, US3.3, US3.4, US3.5, US3.6, US3.8, US3.10 |
 | `photos` | présentation, application, infra | US2.7, US2.8, US3.6, US3.7 |
 | `sync` | présentation, application, infra (via `interventions`, `photos`) | US2.1, US2.5, US2.6, US2.9, US2.10, US2.11 |
 
@@ -126,7 +126,7 @@ US2.2 et US2.3 (affichage côté mobile) n'ont pas d'endpoint dédié : les donn
 
 ---
 
-## 4. Endpoints MVP (11)
+## 4. Endpoints MVP (11) + Nice to have
 
 | Méthode | Chemin | Rôle requis | Corps / paramètres | US |
 |---|---|---|---|---|
@@ -135,6 +135,7 @@ US2.2 et US2.3 (affichage côté mobile) n'ont pas d'endpoint dédié : les donn
 | GET | `/utilisateurs` | DIRECTEUR | `?role=TECHNICIEN&actif=true` | US1.3, US3.3 |
 | POST | `/interventions` | DIRECTEUR | `{ nomClient, adresse, telephone1, telephone2?, geolocalisation?, motifSignale?, datePrevue, technicienId }` | US1.1, US1.8 |
 | GET | `/interventions` | DIRECTEUR | `?client=&technicienId=&statut=&dateDebut=&dateFin=&motCle=&page=` (tri par `creeLe` décroissant), réponse enrichie d'un `parStatut` (cf. note ci-dessous) | US3.1, US3.2, US3.3, US3.4, US3.5, US3.8 |
+| GET | `/interventions/export` | DIRECTEUR | mêmes filtres que `GET /interventions`, sans pagination, technicien inclus (`{ nom }`), déclarée avant `:id` (cf. note ci-dessous) | US3.10 |
 | GET | `/interventions/:id` | DIRECTEUR | inclut photos et technicien | US3.6 |
 | PATCH | `/interventions/:id` | DIRECTEUR | `{ statut: "ANNULEE" }` **ou** un sous-ensemble des champs de création (jamais les deux ensemble), modification autorisée seulement si PLANIFIEE | US1.7, US1.5, US1.6, US1.2 |
 | POST | `/interventions/:id/photos` | authentifié | multipart : `categorie` (AVANT/APRES), fichier | US2.7, US2.8 |
@@ -165,6 +166,8 @@ US1.5 (« modifier une intervention non encore réalisée ») et US1.6 (« réat
 `telephone2`/`geolocalisation`/`motifSignale` envoyés en chaîne vide effacent explicitement la valeur (mise à `null`) ; absents de la requête, ils restent inchangés. Le technicien réassigné est revalidé avec la même règle qu'à la création (actif, rôle `TECHNICIEN`).
 
 **`motifSignale` ajouté au PATCH (US1.2 promue) le 2026-09-14** : Cédric a remarqué que le champ était affiché (mobile US2.2, web US3.6) sans jamais pouvoir être renseigné — incohérence déjà actée sans correctif en Phase II (`docs/ADR.md`, incohérence n°2 : saisie US1.2 Nice to have, affichage MVP). Plutôt que de masquer l'affichage, US1.2 est promue comme US1.5/US1.6 l'ont été : `motifSignale` rejoint `PatchInterventionDto` avec la même sémantique « chaîne vide efface » que `telephone2`/`geolocalisation` (déjà accepté en création depuis le socle, `CreateInterventionDto`). Aucune migration Prisma nécessaire, la colonne existait déjà, nullable, depuis la migration `init`.
+
+**`GET /interventions/export` ajouté (US3.10 promue) le 2026-09-16** : quatrième ticket Nice to have, premier du bloc « Exports ». Renvoie du **JSON brut** (pas un CSV déjà généré) — cohérent avec « le backend fait foi pour les types », les libellés français (statut, type d'équipement) restant une responsabilité des clients, jamais du backend (cf. `web/docs/architecture.md`, section export CSV, pour le raisonnement complet et le format de fichier). Réutilise le même filtre que `lister()` (`ListInterventionsDto` inchangé, aucun nouveau paramètre de requête) mais sans pagination. Refactor associé : la construction du `where` Prisma, jusque-là inline dans `InterventionsRepository.list()`, est extraite en `construireWhere()` (fonction module-level, pas une méthode), réutilisée par la nouvelle `listPourExport()` — évite de dupliquer la logique des 5 filtres (`client`/`technicienId`/`statut`/`datePrevue`/`motCle`) entre liste paginée et export. **Piège de routing évité** : `@Get('export')` déclaré **avant** `@Get(':id')` dans le contrôleur — l'ordre des méthodes du contrôleur détermine l'ordre de matching des routes chez Nest/Express, et `ParseUUIDPipe` aurait intercepté `"export"` comme un id invalide (400) si la route `:id` avait été essayée en premier. Validation de période (`dateDebut > dateFin` → 400) factorisée dans `InterventionsService.validerFiltre()`, partagée par `lister()` et `exporter()`.
 
 **`motCle` ajouté au filtre de `GET /interventions` (US3.8 promue) le 2026-09-16** : troisième ticket Nice to have, juste après US3.4 (même panneau web). Portée des champs cherchés précisée avec Cédric : le CDC ne détaillait pas quels champs une « recherche par mot-clé » devait couvrir, question posée plutôt que devinée. Décision : recherche **OR** sur `adresse`/`motifSignale`/`problemeConstate`/`travauxRealises` (`contains`, `mode: 'insensitive'`), le filtre `client` existant reste séparé et n'est pas absorbé par ce champ. `ListInterventionsDto.motCle` (`@IsString`, `@IsNotEmpty`, optionnel), même schéma que `client`. Champs nullables (`motifSignale`, `problemeConstate`, `travauxRealises`) : Prisma `contains` sur une colonne `null` ne matche simplement jamais, aucun comportement particulier à coder. Aucune migration Prisma nécessaire.
 
@@ -213,7 +216,7 @@ Demande de Cédric côté web : pouvoir supprimer définitivement une interventi
 
 - Pas de Redis, pas de file de tâches.
 - Pas d'email, SMS, push.
-- Pas de génération PDF ni CSV (US3.9, US3.10 Nice to have).
+- Pas de génération PDF (US3.9 Nice to have, non construite). L'export CSV (US3.10) est construit, cf. section 4 — en JSON brut, la génération CSV elle-même vit côté web.
 - Pas de WebSocket.
 - Pas d'endpoints de gestion de comptes en self-service (US4.5 à US4.9 Nice to have) : les comptes sont créés par le seed.
 - Champs `motifSignale` et `typeEquipement` : présents en base, **nullable**, jamais exigés par un endpoint MVP.

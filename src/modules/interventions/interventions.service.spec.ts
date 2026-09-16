@@ -48,6 +48,7 @@ function build(
       total: 1,
       parStatut: { PLANIFIEE: 1, REALISEE: 0, ANNULEE: 0 },
     }),
+    listPourExport: vi.fn().mockResolvedValue([{ id: 'i1' }]),
     findByIdComplet: vi.fn().mockResolvedValue(interventionExistante),
     delete: vi.fn().mockResolvedValue(undefined),
   } as unknown as InterventionsRepository;
@@ -228,6 +229,42 @@ describe('InterventionsService.lister', () => {
 
     await expect(
       service.lister({
+        dateDebut: new Date('2026-09-16T00:00:00.000Z'),
+        dateFin: new Date('2026-09-01T00:00:00.000Z'),
+        page: 1,
+        limit: 20,
+      }),
+    ).rejects.toThrow(BadRequestException);
+  });
+});
+
+describe('InterventionsService.exporter', () => {
+  it('transmet le meme filtre que lister au repository, sans pagination', async () => {
+    const { service, repo } = build();
+
+    const res = await service.exporter({
+      client: 'Ivoire',
+      statut: 'REALISEE',
+      page: 1,
+      limit: 20,
+    });
+
+    expect(repo.listPourExport).toHaveBeenCalledWith({
+      client: 'Ivoire',
+      technicienId: undefined,
+      statut: 'REALISEE',
+      dateDebut: undefined,
+      dateFin: undefined,
+      motCle: undefined,
+    });
+    expect(res).toEqual([{ id: 'i1' }]);
+  });
+
+  it('400 si dateDebut est posterieure a dateFin', async () => {
+    const { service } = build();
+
+    await expect(
+      service.exporter({
         dateDebut: new Date('2026-09-16T00:00:00.000Z'),
         dateFin: new Date('2026-09-01T00:00:00.000Z'),
         page: 1,

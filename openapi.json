@@ -256,6 +256,117 @@
         ]
       }
     },
+    "/interventions/export": {
+      "get": {
+        "operationId": "InterventionsController_exporter",
+        "parameters": [
+          {
+            "name": "page",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "default": 1,
+              "type": "number"
+            }
+          },
+          {
+            "name": "limit",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "minimum": 1,
+              "maximum": 100,
+              "default": 20,
+              "type": "number"
+            }
+          },
+          {
+            "name": "client",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "technicienId",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "uuid",
+              "type": "string"
+            }
+          },
+          {
+            "name": "statut",
+            "required": false,
+            "in": "query",
+            "description": "US3.5. Filtre par état (PLANIFIEE/REALISEE/ANNULEE), absent = tous.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PLANIFIEE",
+                "REALISEE",
+                "ANNULEE"
+              ]
+            }
+          },
+          {
+            "name": "dateDebut",
+            "required": false,
+            "in": "query",
+            "description": "US3.4. Filtre par période sur `datePrevue`, bornes inclusives, l'une ou l'autre optionnelle.",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateFin",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "motCle",
+            "required": false,
+            "in": "query",
+            "description": "US3.8. Recherche libre sur adresse/motifSignale/problemeConstate/travauxRealises.",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "object"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "summary": "US3.10. Declaree avant `:id` : sinon `ParseUUIDPipe` interceptait \"export\".",
+        "tags": [
+          "Interventions"
+        ]
+      }
+    },
     "/interventions/{id}": {
       "get": {
         "operationId": "InterventionsController_detail",

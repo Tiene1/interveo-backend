@@ -67,6 +67,42 @@ export type InterventionDetail = Prisma.InterventionGetPayload<{
   include: typeof DETAIL_INCLUDE;
 }>;
 
+const EXPORT_INCLUDE = {
+  technicien: { select: { nom: true } },
+} satisfies Prisma.InterventionInclude;
+
+export type InterventionPourExport = Prisma.InterventionGetPayload<{
+  include: typeof EXPORT_INCLUDE;
+}>;
+
+/** Construit le `where` Prisma commun a `list()` et `listPourExport()`. */
+function construireWhere(filtre: FiltreInterventions): Prisma.InterventionWhereInput {
+  const filtreDatePrevue: Prisma.DateTimeFilter = {};
+  if (filtre.dateDebut) filtreDatePrevue.gte = filtre.dateDebut;
+  if (filtre.dateFin) filtreDatePrevue.lt = lendemainMinuit(filtre.dateFin);
+
+  return {
+    ...(filtre.client
+      ? { nomClient: { contains: filtre.client, mode: 'insensitive' } }
+      : {}),
+    ...(filtre.technicienId ? { technicienId: filtre.technicienId } : {}),
+    ...(filtre.statut ? { statut: filtre.statut } : {}),
+    ...(Object.keys(filtreDatePrevue).length > 0
+      ? { datePrevue: filtreDatePrevue }
+      : {}),
+    ...(filtre.motCle
+      ? {
+          OR: [
+            { adresse: { contains: filtre.motCle, mode: 'insensitive' } },
+            { motifSignale: { contains: filtre.motCle, mode: 'insensitive' } },
+            { problemeConstate: { contains: filtre.motCle, mode: 'insensitive' } },
+            { travauxRealises: { contains: filtre.motCle, mode: 'insensitive' } },
+          ],
+        }
+      : {}),
+  };
+}
+
 @Injectable()
 export class InterventionsRepository {
   constructor(private readonly prisma: PrismaService) {}
@@ -113,30 +149,7 @@ export class InterventionsRepository {
     total: number;
     parStatut: Record<StatutIntervention, number>;
   }> {
-    const filtreDatePrevue: Prisma.DateTimeFilter = {};
-    if (filtre.dateDebut) filtreDatePrevue.gte = filtre.dateDebut;
-    if (filtre.dateFin) filtreDatePrevue.lt = lendemainMinuit(filtre.dateFin);
-
-    const where: Prisma.InterventionWhereInput = {
-      ...(filtre.client
-        ? { nomClient: { contains: filtre.client, mode: 'insensitive' } }
-        : {}),
-      ...(filtre.technicienId ? { technicienId: filtre.technicienId } : {}),
-      ...(filtre.statut ? { statut: filtre.statut } : {}),
-      ...(Object.keys(filtreDatePrevue).length > 0
-        ? { datePrevue: filtreDatePrevue }
-        : {}),
-      ...(filtre.motCle
-        ? {
-            OR: [
-              { adresse: { contains: filtre.motCle, mode: 'insensitive' } },
-              { motifSignale: { contains: filtre.motCle, mode: 'insensitive' } },
-              { problemeConstate: { contains: filtre.motCle, mode: 'insensitive' } },
-              { travauxRealises: { contains: filtre.motCle, mode: 'insensitive' } },
-            ],
-          }
-        : {}),
-    };
+    const where = construireWhere(filtre);
 
     const [data, total, groupes] = await Promise.all([
       this.prisma.intervention.findMany({
@@ -163,5 +176,14 @@ export class InterventionsRepository {
     }
 
     return { data, total, parStatut };
+  }
+
+  /** US3.10. Meme filtre que `list()`, sans pagination, technicien inclus pour l'export CSV. */
+  listPourExport(filtre: FiltreInterventions): Promise<InterventionPourExport[]> {
+    return this.prisma.intervention.findMany({
+      where: construireWhere(filtre),
+      orderBy: { creeLe: 'desc' },
+      include: EXPORT_INCLUDE,
+    });
   }
 }

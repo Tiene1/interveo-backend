@@ -473,6 +473,42 @@ describe('Interventions - creation (e2e)', () => {
       .expect(400);
   });
 
+  it('GET /interventions/export renvoie toutes les interventions filtrees, sans pagination', async () => {
+    const clientUnique = `Export-${Date.now()}`;
+    await request(app.getHttpServer())
+      .post('/interventions')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send({ ...payloadValide(), nomClient: clientUnique })
+      .expect(201);
+
+    return request(app.getHttpServer())
+      .get(`/interventions/export?client=${clientUnique}`)
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .expect(200)
+      .expect((res) => {
+        expect(Array.isArray(res.body)).toBe(true);
+        expect(res.body).toHaveLength(1);
+        expect(res.body[0]).toMatchObject({
+          nomClient: clientUnique,
+          technicien: { nom: expect.any(String) },
+        });
+      });
+  });
+
+  it('GET /interventions/export renvoie 400 si dateDebut > dateFin', () => {
+    return request(app.getHttpServer())
+      .get('/interventions/export?dateDebut=2026-09-20&dateFin=2026-09-01')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .expect(400);
+  });
+
+  it('GET /interventions/export avec un jeton technicien renvoie 403', () => {
+    return request(app.getHttpServer())
+      .get('/interventions/export')
+      .set('Authorization', `Bearer ${tokenTechnicien}`)
+      .expect(403);
+  });
+
   it('GET /interventions avec un jeton technicien renvoie 403', () => {
     return request(app.getHttpServer())
       .get('/interventions')

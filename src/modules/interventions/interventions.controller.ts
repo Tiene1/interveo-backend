@@ -20,7 +20,10 @@ import {
 import { CreateInterventionDto } from './dto/create-intervention.dto.js';
 import { PatchInterventionDto } from './dto/patch-intervention.dto.js';
 import { ListInterventionsDto } from './dto/list-interventions.dto.js';
-import type { InterventionDetail } from './interventions.repository.js';
+import type {
+  InterventionDetail,
+  InterventionPourExport,
+} from './interventions.repository.js';
 import type { JwtPayload } from '../auth/auth.service.js';
 import type { Intervention } from '../../generated/prisma/client.js';
 
@@ -34,6 +37,12 @@ export class InterventionsController {
   @Get()
   lister(@Query() dto: ListInterventionsDto): Promise<PageInterventions> {
     return this.service.lister(dto);
+  }
+
+  /** US3.10. Declaree avant `:id` : sinon `ParseUUIDPipe` interceptait "export". */
+  @Get('export')
+  exporter(@Query() dto: ListInterventionsDto): Promise<InterventionPourExport[]> {
+    return this.service.exporter(dto);
   }
 
   @Get(':id')
