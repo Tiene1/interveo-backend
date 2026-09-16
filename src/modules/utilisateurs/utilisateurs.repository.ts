@@ -58,4 +58,12 @@ export class UtilisateursRepository {
       orderBy: { nom: 'asc' },
     });
   }
+
+  updateActif(id: string, actif: boolean): Promise<UtilisateurPublic> {
+    return this.prisma.utilisateur.update({
+      where: { id },
+      data: { actif },
+      select: CHAMPS_PUBLICS,
+    });
+  }
 }

@@ -1,4 +1,9 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import * as argon2 from 'argon2';
 import {
   UtilisateursRepository,
@@ -39,5 +44,19 @@ export class UtilisateursService {
       role: 'TECHNICIEN',
       actif: true,
     });
+  }
+
+  /** US4.7. Reserve aux comptes TECHNICIEN (jamais un DIRECTEUR via cet ecran). Idempotent. */
+  async desactiver(id: string): Promise<UtilisateurPublic> {
+    const utilisateur = await this.repo.findById(id);
+    if (!utilisateur) {
+      throw new NotFoundException('Utilisateur introuvable');
+    }
+    if (utilisateur.role !== 'TECHNICIEN') {
+      throw new BadRequestException(
+        'Seuls les comptes techniciens peuvent etre desactives',
+      );
+    }
+    return this.repo.updateActif(id, false);
   }
 }

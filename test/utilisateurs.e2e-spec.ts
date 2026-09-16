@@ -11,6 +11,7 @@ describe('Utilisateurs (e2e)', () => {
   let app: INestApplication<App>;
   let tokenDirecteur: string;
   let tokenTechnicien: string;
+  let directeurId: string;
 
   beforeAll(async () => {
     const moduleFixture: TestingModule = await Test.createTestingModule({
@@ -37,6 +38,11 @@ describe('Utilisateurs (e2e)', () => {
       .post('/auth/login')
       .send({ identifiant: 'koffi', motDePasse: 'technicien123' });
     tokenTechnicien = t.body.accessToken;
+
+    const moi = await request(app.getHttpServer())
+      .get('/auth/moi')
+      .set('Authorization', `Bearer ${tokenDirecteur}`);
+    directeurId = moi.body.id;
   });
 
   afterAll(async () => {
@@ -125,6 +131,77 @@ describe('Utilisateurs (e2e)', () => {
     return request(app.getHttpServer())
       .post('/utilisateurs')
       .send({ nom: 'X', identifiant: `x-${Date.now()}`, motDePasse: 'motdepasse123' })
+      .expect(401);
+  });
+
+  it('PATCH /utilisateurs/:id/desactiver (directeur) desactive un TECHNICIEN, connexion refusee ensuite', async () => {
+    const identifiant = `desact-${Date.now()}`;
+    const creation = await request(app.getHttpServer())
+      .post('/utilisateurs')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send({ nom: 'A Desactiver', identifiant, motDePasse: 'motdepasse123' })
+      .expect(201);
+
+    await request(app.getHttpServer())
+      .patch(`/utilisateurs/${creation.body.id}/desactiver`)
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .expect(200)
+      .expect((res) => {
+        expect(res.body).toMatchObject({ id: creation.body.id, actif: false });
+      });
+
+    return request(app.getHttpServer())
+      .post('/auth/login')
+      .send({ identifiant, motDePasse: 'motdepasse123' })
+      .expect(401);
+  });
+
+  it('PATCH /utilisateurs/:id/desactiver est idempotent (deja inactif)', async () => {
+    const identifiant = `desact-idem-${Date.now()}`;
+    const creation = await request(app.getHttpServer())
+      .post('/utilisateurs')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send({ nom: 'Idempotent', identifiant, motDePasse: 'motdepasse123' })
+      .expect(201);
+
+    await request(app.getHttpServer())
+      .patch(`/utilisateurs/${creation.body.id}/desactiver`)
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .expect(200);
+
+    return request(app.getHttpServer())
+      .patch(`/utilisateurs/${creation.body.id}/desactiver`)
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.actif).toBe(false);
+      });
+  });
+
+  it('PATCH /utilisateurs/:id/desactiver renvoie 400 sur le compte DIRECTEUR', () => {
+    return request(app.getHttpServer())
+      .patch(`/utilisateurs/${directeurId}/desactiver`)
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .expect(400);
+  });
+
+  it('PATCH /utilisateurs/:id/desactiver renvoie 404 si l utilisateur n existe pas', () => {
+    return request(app.getHttpServer())
+      .patch('/utilisateurs/00000000-0000-0000-0000-000000000000/desactiver')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .expect(404);
+  });
+
+  it('PATCH /utilisateurs/:id/desactiver avec un jeton technicien renvoie 403', () => {
+    return request(app.getHttpServer())
+      .patch(`/utilisateurs/${directeurId}/desactiver`)
+      .set('Authorization', `Bearer ${tokenTechnicien}`)
+      .expect(403);
+  });
+
+  it('PATCH /utilisateurs/:id/desactiver sans jeton renvoie 401', () => {
+    return request(app.getHttpServer())
+      .patch(`/utilisateurs/${directeurId}/desactiver`)
       .expect(401);
   });
 });

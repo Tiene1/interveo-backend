@@ -1,4 +1,4 @@
-import { ConflictException } from '@nestjs/common';
+import { BadRequestException, ConflictException, NotFoundException } from '@nestjs/common';
 import { UtilisateursService } from './utilisateurs.service.js';
 import type { UtilisateursRepository } from './utilisateurs.repository.js';
 
@@ -68,5 +68,42 @@ describe('UtilisateursService.creer', () => {
       service.creer({ nom: 'Jean Koffi', identifiant: 'koffi', motDePasse: 'motdepasse123' }),
     ).rejects.toThrow(ConflictException);
     expect(repo.create).not.toHaveBeenCalled();
+  });
+});
+
+describe('UtilisateursService.desactiver', () => {
+  it('desactive un compte TECHNICIEN', async () => {
+    const repo = {
+      findById: vi.fn().mockResolvedValue({ id: 'u1', role: 'TECHNICIEN' }),
+      updateActif: vi.fn().mockResolvedValue({ id: 'u1', actif: false }),
+    } as unknown as UtilisateursRepository;
+    const service = new UtilisateursService(repo);
+
+    const res = await service.desactiver('u1');
+
+    expect(repo.updateActif).toHaveBeenCalledWith('u1', false);
+    expect(res).toEqual({ id: 'u1', actif: false });
+  });
+
+  it('404 si l utilisateur n existe pas', async () => {
+    const repo = {
+      findById: vi.fn().mockResolvedValue(null),
+      updateActif: vi.fn(),
+    } as unknown as UtilisateursRepository;
+    const service = new UtilisateursService(repo);
+
+    await expect(service.desactiver('inconnu')).rejects.toThrow(NotFoundException);
+    expect(repo.updateActif).not.toHaveBeenCalled();
+  });
+
+  it('400 si le compte n est pas un TECHNICIEN', async () => {
+    const repo = {
+      findById: vi.fn().mockResolvedValue({ id: 'u1', role: 'DIRECTEUR' }),
+      updateActif: vi.fn(),
+    } as unknown as UtilisateursRepository;
+    const service = new UtilisateursService(repo);
+
+    await expect(service.desactiver('u1')).rejects.toThrow(BadRequestException);
+    expect(repo.updateActif).not.toHaveBeenCalled();
   });
 });
