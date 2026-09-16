@@ -413,6 +413,36 @@ describe('Interventions - creation (e2e)', () => {
       });
   });
 
+  it('GET /interventions?dateDebut=&dateFin= filtre sur la periode (bornes inclusives)', async () => {
+    const clientUnique = `Periode-${Date.now()}`;
+    await request(app.getHttpServer())
+      .post('/interventions')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send({ ...payloadValide(), nomClient: clientUnique, datePrevue: '2026-10-05T14:00:00.000Z' })
+      .expect(201);
+
+    return request(app.getHttpServer())
+      .get('/interventions?dateDebut=2026-09-20&dateFin=2026-09-20')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.total).toBeGreaterThanOrEqual(1);
+        for (const i of res.body.data) {
+          expect(new Date(i.datePrevue).toISOString().slice(0, 10)).toBe('2026-09-20');
+        }
+        expect(
+          res.body.data.some((i: { nomClient: string }) => i.nomClient === clientUnique),
+        ).toBe(false);
+      });
+  });
+
+  it('GET /interventions?dateDebut=&dateFin= renvoie 400 si dateDebut > dateFin', () => {
+    return request(app.getHttpServer())
+      .get('/interventions?dateDebut=2026-09-20&dateFin=2026-09-01')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .expect(400);
+  });
+
   it('GET /interventions avec un jeton technicien renvoie 403', () => {
     return request(app.getHttpServer())
       .get('/interventions')

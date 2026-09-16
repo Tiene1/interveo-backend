@@ -148,7 +148,13 @@ describe('InterventionsService.lister', () => {
     });
 
     expect(repo.list).toHaveBeenCalledWith(
-      { client: 'Ivoire', technicienId: 't1', statut: undefined },
+      {
+        client: 'Ivoire',
+        technicienId: 't1',
+        statut: undefined,
+        dateDebut: undefined,
+        dateFin: undefined,
+      },
       { page: 2, limit: 10 },
     );
     expect(res).toEqual({
@@ -166,9 +172,47 @@ describe('InterventionsService.lister', () => {
     await service.lister({ statut: 'REALISEE', page: 1, limit: 20 });
 
     expect(repo.list).toHaveBeenCalledWith(
-      { client: undefined, technicienId: undefined, statut: 'REALISEE' },
+      {
+        client: undefined,
+        technicienId: undefined,
+        statut: 'REALISEE',
+        dateDebut: undefined,
+        dateFin: undefined,
+      },
       { page: 1, limit: 20 },
     );
+  });
+
+  it('transmet dateDebut/dateFin au repository quand ils sont fournis', async () => {
+    const { service, repo } = build();
+    const dateDebut = new Date('2026-09-01T00:00:00.000Z');
+    const dateFin = new Date('2026-09-16T00:00:00.000Z');
+
+    await service.lister({ dateDebut, dateFin, page: 1, limit: 20 });
+
+    expect(repo.list).toHaveBeenCalledWith(
+      {
+        client: undefined,
+        technicienId: undefined,
+        statut: undefined,
+        dateDebut,
+        dateFin,
+      },
+      { page: 1, limit: 20 },
+    );
+  });
+
+  it('400 si dateDebut est posterieure a dateFin', async () => {
+    const { service } = build();
+
+    await expect(
+      service.lister({
+        dateDebut: new Date('2026-09-16T00:00:00.000Z'),
+        dateFin: new Date('2026-09-01T00:00:00.000Z'),
+        page: 1,
+        limit: 20,
+      }),
+    ).rejects.toThrow(BadRequestException);
   });
 });
 

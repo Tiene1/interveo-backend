@@ -37,6 +37,16 @@ export interface FiltreInterventions {
   client?: string;
   technicienId?: string;
   statut?: StatutIntervention;
+  dateDebut?: Date;
+  dateFin?: Date;
+}
+
+/** Minuit le lendemain de `date` : borne haute exclusive couvrant toute la journée de `date`. */
+function lendemainMinuit(date: Date): Date {
+  const lendemain = new Date(date);
+  lendemain.setUTCDate(lendemain.getUTCDate() + 1);
+  lendemain.setUTCHours(0, 0, 0, 0);
+  return lendemain;
 }
 
 const DETAIL_INCLUDE = {
@@ -102,12 +112,19 @@ export class InterventionsRepository {
     total: number;
     parStatut: Record<StatutIntervention, number>;
   }> {
+    const filtreDatePrevue: Prisma.DateTimeFilter = {};
+    if (filtre.dateDebut) filtreDatePrevue.gte = filtre.dateDebut;
+    if (filtre.dateFin) filtreDatePrevue.lt = lendemainMinuit(filtre.dateFin);
+
     const where: Prisma.InterventionWhereInput = {
       ...(filtre.client
         ? { nomClient: { contains: filtre.client, mode: 'insensitive' } }
         : {}),
       ...(filtre.technicienId ? { technicienId: filtre.technicienId } : {}),
       ...(filtre.statut ? { statut: filtre.statut } : {}),
+      ...(Object.keys(filtreDatePrevue).length > 0
+        ? { datePrevue: filtreDatePrevue }
+        : {}),
     };
 
     const [data, total, groupes] = await Promise.all([

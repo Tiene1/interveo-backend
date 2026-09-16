@@ -177,6 +177,25 @@
                 "ANNULEE"
               ]
             }
+          },
+          {
+            "name": "dateDebut",
+            "required": false,
+            "in": "query",
+            "description": "US3.4. Filtre par période sur `datePrevue`, bornes inclusives, l'une ou l'autre optionnelle.",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
+          },
+          {
+            "name": "dateFin",
+            "required": false,
+            "in": "query",
+            "schema": {
+              "format": "date-time",
+              "type": "string"
+            }
           }
         ],
         "responses": {

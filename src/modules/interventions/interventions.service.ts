@@ -67,8 +67,20 @@ export class InterventionsService {
   }
 
   async lister(dto: ListInterventionsDto): Promise<PageInterventions> {
+    if (dto.dateDebut && dto.dateFin && dto.dateDebut > dto.dateFin) {
+      throw new BadRequestException(
+        'La date de debut ne peut pas etre posterieure a la date de fin',
+      );
+    }
+
     const { data, total, parStatut } = await this.repo.list(
-      { client: dto.client, technicienId: dto.technicienId, statut: dto.statut },
+      {
+        client: dto.client,
+        technicienId: dto.technicienId,
+        statut: dto.statut,
+        dateDebut: dto.dateDebut,
+        dateFin: dto.dateFin,
+      },
       { page: dto.page, limit: dto.limit },
     );
     return { data, total, page: dto.page, limit: dto.limit, parStatut };
