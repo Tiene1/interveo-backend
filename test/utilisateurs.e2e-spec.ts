@@ -7,6 +7,13 @@ import { HttpExceptionFilter } from './../src/common/filters/http-exception.filt
 
 // Dépend du seed : kouassi / directeur123 et koffi / technicien123.
 
+// Mots de passe utilisés pour créer/réinitialiser des comptes de test via
+// ces endpoints : doivent respecter la règle de complexité (majuscule,
+// minuscule, chiffre, caractère spécial), contrairement aux mots de passe
+// du seed ci-dessus (créés hors validation, par prisma/seed.ts).
+const MOT_DE_PASSE_VALIDE = 'Motdepasse123!';
+const AUTRE_MOT_DE_PASSE_VALIDE = 'Nouveaumdp123!';
+
 describe('Utilisateurs (e2e)', () => {
   let app: INestApplication<App>;
   let tokenDirecteur: string;
@@ -88,7 +95,7 @@ describe('Utilisateurs (e2e)', () => {
     const creation = await request(app.getHttpServer())
       .post('/utilisateurs')
       .set('Authorization', `Bearer ${tokenDirecteur}`)
-      .send({ nom: 'Nouveau Technicien', identifiant, motDePasse: 'motdepasse123' })
+      .send({ nom: 'Nouveau Technicien', identifiant, motDePasse: MOT_DE_PASSE_VALIDE })
       .expect(201);
 
     expect(creation.body).toMatchObject({ nom: 'Nouveau Technicien', identifiant, role: 'TECHNICIEN', actif: true });
@@ -96,7 +103,7 @@ describe('Utilisateurs (e2e)', () => {
 
     return request(app.getHttpServer())
       .post('/auth/login')
-      .send({ identifiant, motDePasse: 'motdepasse123' })
+      .send({ identifiant, motDePasse: MOT_DE_PASSE_VALIDE })
       .expect(200)
       .expect((res) => {
         expect(res.body).toHaveProperty('accessToken');
@@ -107,7 +114,7 @@ describe('Utilisateurs (e2e)', () => {
     return request(app.getHttpServer())
       .post('/utilisateurs')
       .set('Authorization', `Bearer ${tokenDirecteur}`)
-      .send({ nom: 'Doublon', identifiant: 'koffi', motDePasse: 'motdepasse123' })
+      .send({ nom: 'Doublon', identifiant: 'koffi', motDePasse: MOT_DE_PASSE_VALIDE })
       .expect(409);
   });
 
@@ -119,18 +126,31 @@ describe('Utilisateurs (e2e)', () => {
       .expect(400);
   });
 
+  it.each([
+    ['sans majuscule', 'motdepasse123!'],
+    ['sans minuscule', 'MOTDEPASSE123!'],
+    ['sans chiffre', 'Motdepasse!'],
+    ['sans caractere special', 'Motdepasse123'],
+  ])('POST /utilisateurs renvoie 400 si le mot de passe %s', (_cas, motDePasse) => {
+    return request(app.getHttpServer())
+      .post('/utilisateurs')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send({ nom: 'Mot De Passe Faible', identifiant: `faible-${Date.now()}-${Math.random()}`, motDePasse })
+      .expect(400);
+  });
+
   it('POST /utilisateurs avec un jeton technicien renvoie 403', () => {
     return request(app.getHttpServer())
       .post('/utilisateurs')
       .set('Authorization', `Bearer ${tokenTechnicien}`)
-      .send({ nom: 'X', identifiant: `x-${Date.now()}`, motDePasse: 'motdepasse123' })
+      .send({ nom: 'X', identifiant: `x-${Date.now()}`, motDePasse: MOT_DE_PASSE_VALIDE })
       .expect(403);
   });
 
   it('POST /utilisateurs sans jeton renvoie 401', () => {
     return request(app.getHttpServer())
       .post('/utilisateurs')
-      .send({ nom: 'X', identifiant: `x-${Date.now()}`, motDePasse: 'motdepasse123' })
+      .send({ nom: 'X', identifiant: `x-${Date.now()}`, motDePasse: MOT_DE_PASSE_VALIDE })
       .expect(401);
   });
 
@@ -139,7 +159,7 @@ describe('Utilisateurs (e2e)', () => {
     const creation = await request(app.getHttpServer())
       .post('/utilisateurs')
       .set('Authorization', `Bearer ${tokenDirecteur}`)
-      .send({ nom: 'A Desactiver', identifiant, motDePasse: 'motdepasse123' })
+      .send({ nom: 'A Desactiver', identifiant, motDePasse: MOT_DE_PASSE_VALIDE })
       .expect(201);
 
     await request(app.getHttpServer())
@@ -152,7 +172,7 @@ describe('Utilisateurs (e2e)', () => {
 
     return request(app.getHttpServer())
       .post('/auth/login')
-      .send({ identifiant, motDePasse: 'motdepasse123' })
+      .send({ identifiant, motDePasse: MOT_DE_PASSE_VALIDE })
       .expect(401);
   });
 
@@ -161,7 +181,7 @@ describe('Utilisateurs (e2e)', () => {
     const creation = await request(app.getHttpServer())
       .post('/utilisateurs')
       .set('Authorization', `Bearer ${tokenDirecteur}`)
-      .send({ nom: 'Idempotent', identifiant, motDePasse: 'motdepasse123' })
+      .send({ nom: 'Idempotent', identifiant, motDePasse: MOT_DE_PASSE_VALIDE })
       .expect(201);
 
     await request(app.getHttpServer())
@@ -210,13 +230,13 @@ describe('Utilisateurs (e2e)', () => {
     const creation = await request(app.getHttpServer())
       .post('/utilisateurs')
       .set('Authorization', `Bearer ${tokenDirecteur}`)
-      .send({ nom: 'A Reinitialiser', identifiant, motDePasse: 'ancienMotDePasse1' })
+      .send({ nom: 'A Reinitialiser', identifiant, motDePasse: MOT_DE_PASSE_VALIDE })
       .expect(201);
 
     await request(app.getHttpServer())
       .patch(`/utilisateurs/${creation.body.id}/reinitialiser-mot-de-passe`)
       .set('Authorization', `Bearer ${tokenDirecteur}`)
-      .send({ motDePasse: 'nouveauMotDePasse1' })
+      .send({ motDePasse: AUTRE_MOT_DE_PASSE_VALIDE })
       .expect(200)
       .expect((res) => {
         expect(res.body).toMatchObject({ id: creation.body.id });
@@ -225,12 +245,12 @@ describe('Utilisateurs (e2e)', () => {
 
     await request(app.getHttpServer())
       .post('/auth/login')
-      .send({ identifiant, motDePasse: 'ancienMotDePasse1' })
+      .send({ identifiant, motDePasse: MOT_DE_PASSE_VALIDE })
       .expect(401);
 
     return request(app.getHttpServer())
       .post('/auth/login')
-      .send({ identifiant, motDePasse: 'nouveauMotDePasse1' })
+      .send({ identifiant, motDePasse: AUTRE_MOT_DE_PASSE_VALIDE })
       .expect(200)
       .expect((res) => {
         expect(res.body).toHaveProperty('accessToken');
@@ -242,7 +262,7 @@ describe('Utilisateurs (e2e)', () => {
     const creation = await request(app.getHttpServer())
       .post('/utilisateurs')
       .set('Authorization', `Bearer ${tokenDirecteur}`)
-      .send({ nom: 'Court', identifiant, motDePasse: 'motdepasse123' })
+      .send({ nom: 'Court', identifiant, motDePasse: MOT_DE_PASSE_VALIDE })
       .expect(201);
 
     return request(app.getHttpServer())
@@ -252,11 +272,34 @@ describe('Utilisateurs (e2e)', () => {
       .expect(400);
   });
 
+  it.each([
+    ['sans majuscule', 'motdepasse123!'],
+    ['sans minuscule', 'MOTDEPASSE123!'],
+    ['sans chiffre', 'Motdepasse!'],
+    ['sans caractere special', 'Motdepasse123'],
+  ])(
+    'PATCH /utilisateurs/:id/reinitialiser-mot-de-passe renvoie 400 si le mot de passe %s',
+    async (_cas, motDePasse) => {
+      const identifiant = `reinit-faible-${Date.now()}-${Math.random()}`;
+      const creation = await request(app.getHttpServer())
+        .post('/utilisateurs')
+        .set('Authorization', `Bearer ${tokenDirecteur}`)
+        .send({ nom: 'Mot De Passe Faible', identifiant, motDePasse: MOT_DE_PASSE_VALIDE })
+        .expect(201);
+
+      return request(app.getHttpServer())
+        .patch(`/utilisateurs/${creation.body.id}/reinitialiser-mot-de-passe`)
+        .set('Authorization', `Bearer ${tokenDirecteur}`)
+        .send({ motDePasse })
+        .expect(400);
+    },
+  );
+
   it('PATCH /utilisateurs/:id/reinitialiser-mot-de-passe renvoie 400 sur le compte DIRECTEUR', () => {
     return request(app.getHttpServer())
       .patch(`/utilisateurs/${directeurId}/reinitialiser-mot-de-passe`)
       .set('Authorization', `Bearer ${tokenDirecteur}`)
-      .send({ motDePasse: 'motdepasse123' })
+      .send({ motDePasse: MOT_DE_PASSE_VALIDE })
       .expect(400);
   });
 
@@ -264,7 +307,7 @@ describe('Utilisateurs (e2e)', () => {
     return request(app.getHttpServer())
       .patch('/utilisateurs/00000000-0000-0000-0000-000000000000/reinitialiser-mot-de-passe')
       .set('Authorization', `Bearer ${tokenDirecteur}`)
-      .send({ motDePasse: 'motdepasse123' })
+      .send({ motDePasse: MOT_DE_PASSE_VALIDE })
       .expect(404);
   });
 
@@ -272,14 +315,14 @@ describe('Utilisateurs (e2e)', () => {
     return request(app.getHttpServer())
       .patch(`/utilisateurs/${directeurId}/reinitialiser-mot-de-passe`)
       .set('Authorization', `Bearer ${tokenTechnicien}`)
-      .send({ motDePasse: 'motdepasse123' })
+      .send({ motDePasse: MOT_DE_PASSE_VALIDE })
       .expect(403);
   });
 
   it('PATCH /utilisateurs/:id/reinitialiser-mot-de-passe sans jeton renvoie 401', () => {
     return request(app.getHttpServer())
       .patch(`/utilisateurs/${directeurId}/reinitialiser-mot-de-passe`)
-      .send({ motDePasse: 'motdepasse123' })
+      .send({ motDePasse: MOT_DE_PASSE_VALIDE })
       .expect(401);
   });
 });
