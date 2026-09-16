@@ -216,7 +216,7 @@ Demande de Cédric côté web : pouvoir supprimer définitivement une interventi
 
 - Pas de Redis, pas de file de tâches.
 - Pas d'email, SMS, push.
-- Pas de génération PDF (US3.9 Nice to have, non construite). L'export CSV (US3.10) est construit, cf. section 4 — en JSON brut, la génération CSV elle-même vit côté web.
+- Pas de génération PDF côté backend : l'export PDF (US3.9) est construit, mais entièrement côté web (`jspdf`, aucun endpoint dédié) — `GET /interventions/:id` existant suffisait. L'export CSV (US3.10) est construit, cf. section 4 — en JSON brut, la génération CSV elle-même vit côté web.
 - Pas de WebSocket.
 - Pas d'endpoints de gestion de comptes en self-service (US4.5 à US4.9 Nice to have) : les comptes sont créés par le seed.
 - Champs `motifSignale` et `typeEquipement` : présents en base, **nullable**, jamais exigés par un endpoint MVP.
