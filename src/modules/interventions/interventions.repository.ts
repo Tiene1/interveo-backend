@@ -36,6 +36,7 @@ export interface ModifierInterventionData {
 export interface FiltreInterventions {
   client?: string;
   technicienId?: string;
+  statut?: StatutIntervention;
 }
 
 const DETAIL_INCLUDE = {
@@ -106,6 +107,7 @@ export class InterventionsRepository {
         ? { nomClient: { contains: filtre.client, mode: 'insensitive' } }
         : {}),
       ...(filtre.technicienId ? { technicienId: filtre.technicienId } : {}),
+      ...(filtre.statut ? { statut: filtre.statut } : {}),
     };
 
     const [data, total, groupes] = await Promise.all([

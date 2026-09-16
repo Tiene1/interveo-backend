@@ -118,7 +118,7 @@ backend/
 |---|---|---|
 | `auth` | présentation, application, infra (via `utilisateurs`) | US4.1, US4.2, US4.4 |
 | `utilisateurs` | présentation, application, domaine, infra | US1.3, US3.3 (liste du filtre), seed |
-| `interventions` | présentation, application, domaine, infra | US1.1, US1.7, US1.8, US3.1, US3.2, US3.3, US3.6 |
+| `interventions` | présentation, application, domaine, infra | US1.1, US1.7, US1.8, US3.1, US3.2, US3.3, US3.5, US3.6 |
 | `photos` | présentation, application, infra | US2.7, US2.8, US3.6, US3.7 |
 | `sync` | présentation, application, infra (via `interventions`, `photos`) | US2.1, US2.5, US2.6, US2.9, US2.10, US2.11 |
 
@@ -134,7 +134,7 @@ US2.2 et US2.3 (affichage côté mobile) n'ont pas d'endpoint dédié : les donn
 | GET | `/auth/moi` | authentifié | — | US4.2 |
 | GET | `/utilisateurs` | DIRECTEUR | `?role=TECHNICIEN&actif=true` | US1.3, US3.3 |
 | POST | `/interventions` | DIRECTEUR | `{ nomClient, adresse, telephone1, telephone2?, geolocalisation?, motifSignale?, datePrevue, technicienId }` | US1.1, US1.8 |
-| GET | `/interventions` | DIRECTEUR | `?client=&technicienId=&page=` (tri par `creeLe` décroissant), réponse enrichie d'un `parStatut` (cf. note ci-dessous) | US3.1, US3.2, US3.3 |
+| GET | `/interventions` | DIRECTEUR | `?client=&technicienId=&statut=&page=` (tri par `creeLe` décroissant), réponse enrichie d'un `parStatut` (cf. note ci-dessous) | US3.1, US3.2, US3.3, US3.5 |
 | GET | `/interventions/:id` | DIRECTEUR | inclut photos et technicien | US3.6 |
 | PATCH | `/interventions/:id` | DIRECTEUR | `{ statut: "ANNULEE" }` **ou** un sous-ensemble des champs de création (jamais les deux ensemble), modification autorisée seulement si PLANIFIEE | US1.7, US1.5, US1.6, US1.2 |
 | POST | `/interventions/:id/photos` | authentifié | multipart : `categorie` (AVANT/APRES), fichier | US2.7, US2.8 |
@@ -165,6 +165,8 @@ US1.5 (« modifier une intervention non encore réalisée ») et US1.6 (« réat
 `telephone2`/`geolocalisation`/`motifSignale` envoyés en chaîne vide effacent explicitement la valeur (mise à `null`) ; absents de la requête, ils restent inchangés. Le technicien réassigné est revalidé avec la même règle qu'à la création (actif, rôle `TECHNICIEN`).
 
 **`motifSignale` ajouté au PATCH (US1.2 promue) le 2026-09-14** : Cédric a remarqué que le champ était affiché (mobile US2.2, web US3.6) sans jamais pouvoir être renseigné — incohérence déjà actée sans correctif en Phase II (`docs/ADR.md`, incohérence n°2 : saisie US1.2 Nice to have, affichage MVP). Plutôt que de masquer l'affichage, US1.2 est promue comme US1.5/US1.6 l'ont été : `motifSignale` rejoint `PatchInterventionDto` avec la même sémantique « chaîne vide efface » que `telephone2`/`geolocalisation` (déjà accepté en création depuis le socle, `CreateInterventionDto`). Aucune migration Prisma nécessaire, la colonne existait déjà, nullable, depuis la migration `init`.
+
+**`statut` ajouté au filtre de `GET /interventions` (US3.5 promue) le 2026-09-16** : premier ticket Nice to have après validation de la recette Must have par Cédric. Même schéma que les filtres `client`/`technicienId` existants : `ListInterventionsDto.statut` (`@IsEnum(StatutIntervention)`, `IsOptional`) transmis à `InterventionsRepository.list()`, ajouté à la clause `where` (et donc pris en compte par le `groupBy` de `parStatut` et le `count` total, cohérence déjà garantie par la structure existante). Aucune migration Prisma nécessaire.
 
 **`typeEquipement` ajouté à la création et au PATCH (US2.4 promue) le 2026-09-15** : même schéma exact que `motifSignale` — Cédric a remarqué que le champ s'affichait sur le détail (mobile US2.2, web US3.6) sans jamais pouvoir être saisi. US2.4 (« structurer le type d'équipement ») était classée Nice to have au tri du 2026-09-01 (`docs/ADR.md`, incohérence tranchée en Phase II : le type d'équipement avait d'ailleurs été retiré du critère de clôture US2.10 justement parce que US2.4 restait hors périmètre). `typeEquipement` (`IsEnum(TypeEquipement)`, `IsOptional`) ajouté à `CreateInterventionDto` et `PatchInterventionDto`. **Sémantique d'effacement différente des champs texte** : un enum n'a pas de « chaîne vide » valide, donc effacer la valeur exige d'envoyer `null` explicitement (`champs.typeEquipement !== undefined` déclenche la mise à jour, `null` compris) — à ne pas confondre avec `telephone2`/`motifSignale` où une chaîne vide fait ce travail. Aucune migration Prisma : l'enum `TypeEquipement` et la colonne nullable existaient déjà depuis le socle. `openapi.json` régénéré.
 

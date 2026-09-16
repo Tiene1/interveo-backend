@@ -68,7 +68,7 @@ export class InterventionsService {
 
   async lister(dto: ListInterventionsDto): Promise<PageInterventions> {
     const { data, total, parStatut } = await this.repo.list(
-      { client: dto.client, technicienId: dto.technicienId },
+      { client: dto.client, technicienId: dto.technicienId, statut: dto.statut },
       { page: dto.page, limit: dto.limit },
     );
     return { data, total, page: dto.page, limit: dto.limit, parStatut };

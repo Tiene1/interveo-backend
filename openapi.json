@@ -163,6 +163,20 @@
               "format": "uuid",
               "type": "string"
             }
+          },
+          {
+            "name": "statut",
+            "required": false,
+            "in": "query",
+            "description": "US3.5. Filtre par état (PLANIFIEE/REALISEE/ANNULEE), absent = tous.",
+            "schema": {
+              "type": "string",
+              "enum": [
+                "PLANIFIEE",
+                "REALISEE",
+                "ANNULEE"
+              ]
+            }
           }
         ],
         "responses": {

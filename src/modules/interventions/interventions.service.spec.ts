@@ -148,7 +148,7 @@ describe('InterventionsService.lister', () => {
     });
 
     expect(repo.list).toHaveBeenCalledWith(
-      { client: 'Ivoire', technicienId: 't1' },
+      { client: 'Ivoire', technicienId: 't1', statut: undefined },
       { page: 2, limit: 10 },
     );
     expect(res).toEqual({
@@ -158,6 +158,17 @@ describe('InterventionsService.lister', () => {
       limit: 10,
       parStatut: { PLANIFIEE: 1, REALISEE: 0, ANNULEE: 0 },
     });
+  });
+
+  it('transmet le statut au repository quand il est fourni', async () => {
+    const { service, repo } = build();
+
+    await service.lister({ statut: 'REALISEE', page: 1, limit: 20 });
+
+    expect(repo.list).toHaveBeenCalledWith(
+      { client: undefined, technicienId: undefined, statut: 'REALISEE' },
+      { page: 1, limit: 20 },
+    );
   });
 });
 

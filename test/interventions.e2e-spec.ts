@@ -391,6 +391,28 @@ describe('Interventions - creation (e2e)', () => {
       });
   });
 
+  it('GET /interventions?statut= filtre sur le statut', async () => {
+    const clientUnique = `Statut-${Date.now()}`;
+    await request(app.getHttpServer())
+      .post('/interventions')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send({ ...payloadValide(), nomClient: clientUnique })
+      .expect(201);
+
+    return request(app.getHttpServer())
+      .get('/interventions?statut=REALISEE')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .expect(200)
+      .expect((res) => {
+        for (const i of res.body.data) {
+          expect(i.statut).toBe('REALISEE');
+        }
+        expect(
+          res.body.data.some((i: { nomClient: string }) => i.nomClient === clientUnique),
+        ).toBe(false);
+      });
+  });
+
   it('GET /interventions avec un jeton technicien renvoie 403', () => {
     return request(app.getHttpServer())
       .get('/interventions')
