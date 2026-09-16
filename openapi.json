@@ -120,6 +120,40 @@
         "tags": [
           "Utilisateurs"
         ]
+      },
+      "post": {
+        "operationId": "UtilisateursController_creer",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateUtilisateurDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "tags": [
+          "Utilisateurs"
+        ]
       }
     },
     "/interventions": {
@@ -656,6 +690,26 @@
           }
         },
         "required": [
+          "identifiant",
+          "motDePasse"
+        ]
+      },
+      "CreateUtilisateurDto": {
+        "type": "object",
+        "properties": {
+          "nom": {
+            "type": "string"
+          },
+          "identifiant": {
+            "type": "string"
+          },
+          "motDePasse": {
+            "type": "string",
+            "minLength": 8
+          }
+        },
+        "required": [
+          "nom",
           "identifiant",
           "motDePasse"
         ]

@@ -76,4 +76,55 @@ describe('Utilisateurs (e2e)', () => {
       .set('Authorization', `Bearer ${tokenDirecteur}`)
       .expect(400);
   });
+
+  it('POST /utilisateurs (directeur) cree un compte TECHNICIEN actif, connectable ensuite', async () => {
+    const identifiant = `test-${Date.now()}`;
+    const creation = await request(app.getHttpServer())
+      .post('/utilisateurs')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send({ nom: 'Nouveau Technicien', identifiant, motDePasse: 'motdepasse123' })
+      .expect(201);
+
+    expect(creation.body).toMatchObject({ nom: 'Nouveau Technicien', identifiant, role: 'TECHNICIEN', actif: true });
+    expect(creation.body).not.toHaveProperty('motDePasseHash');
+
+    return request(app.getHttpServer())
+      .post('/auth/login')
+      .send({ identifiant, motDePasse: 'motdepasse123' })
+      .expect(200)
+      .expect((res) => {
+        expect(res.body).toHaveProperty('accessToken');
+      });
+  });
+
+  it('POST /utilisateurs renvoie 409 si l identifiant existe deja', () => {
+    return request(app.getHttpServer())
+      .post('/utilisateurs')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send({ nom: 'Doublon', identifiant: 'koffi', motDePasse: 'motdepasse123' })
+      .expect(409);
+  });
+
+  it('POST /utilisateurs renvoie 400 si le mot de passe fait moins de 8 caracteres', () => {
+    return request(app.getHttpServer())
+      .post('/utilisateurs')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send({ nom: 'Trop Court', identifiant: `court-${Date.now()}`, motDePasse: '1234567' })
+      .expect(400);
+  });
+
+  it('POST /utilisateurs avec un jeton technicien renvoie 403', () => {
+    return request(app.getHttpServer())
+      .post('/utilisateurs')
+      .set('Authorization', `Bearer ${tokenTechnicien}`)
+      .send({ nom: 'X', identifiant: `x-${Date.now()}`, motDePasse: 'motdepasse123' })
+      .expect(403);
+  });
+
+  it('POST /utilisateurs sans jeton renvoie 401', () => {
+    return request(app.getHttpServer())
+      .post('/utilisateurs')
+      .send({ nom: 'X', identifiant: `x-${Date.now()}`, motDePasse: 'motdepasse123' })
+      .expect(401);
+  });
 });

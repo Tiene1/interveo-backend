@@ -80,7 +80,7 @@ backend/
         guards/roles.guard.ts
       utilisateurs/
         utilisateurs.module.ts
-        utilisateurs.controller.ts   (GET /utilisateurs)
+        utilisateurs.controller.ts   (GET /utilisateurs, POST /utilisateurs)
         utilisateurs.service.ts
         utilisateurs.repository.ts
         domain/utilisateur.rules.ts  (actif, rôle)
@@ -117,7 +117,7 @@ backend/
 | Module | Couches présentes | User Stories MVP |
 |---|---|---|
 | `auth` | présentation, application, infra (via `utilisateurs`) | US4.1, US4.2, US4.4 |
-| `utilisateurs` | présentation, application, domaine, infra | US1.3, US3.3 (liste du filtre), seed |
+| `utilisateurs` | présentation, application, domaine, infra | US1.3, US3.3 (liste du filtre), US4.5 (création), seed |
 | `interventions` | présentation, application, domaine, infra | US1.1, US1.7, US1.8, US3.1, US3.2, US3.3, US3.4, US3.5, US3.6, US3.8, US3.10 |
 | `photos` | présentation, application, infra | US2.7, US2.8, US3.6, US3.7 |
 | `sync` | présentation, application, infra (via `interventions`, `photos`) | US2.1, US2.5, US2.6, US2.9, US2.10, US2.11 |
@@ -133,6 +133,7 @@ US2.2 et US2.3 (affichage côté mobile) n'ont pas d'endpoint dédié : les donn
 | POST | `/auth/login` | public | `{ identifiant, motDePasse }` | US4.1, US4.4 |
 | GET | `/auth/moi` | authentifié | — | US4.2 |
 | GET | `/utilisateurs` | DIRECTEUR | `?role=TECHNICIEN&actif=true` | US1.3, US3.3 |
+| POST | `/utilisateurs` | DIRECTEUR | `{ nom, identifiant, motDePasse }`, crée toujours un compte TECHNICIEN | US4.5 |
 | POST | `/interventions` | DIRECTEUR | `{ nomClient, adresse, telephone1, telephone2?, geolocalisation?, motifSignale?, datePrevue, technicienId }` | US1.1, US1.8 |
 | GET | `/interventions` | DIRECTEUR | `?client=&technicienId=&statut=&dateDebut=&dateFin=&motCle=&page=` (tri par `creeLe` décroissant), réponse enrichie d'un `parStatut` (cf. note ci-dessous) | US3.1, US3.2, US3.3, US3.4, US3.5, US3.8 |
 | GET | `/interventions/export` | DIRECTEUR | mêmes filtres que `GET /interventions`, sans pagination, technicien inclus (`{ nom }`), déclarée avant `:id` (cf. note ci-dessous) | US3.10 |
@@ -207,6 +208,11 @@ Demande de Cédric côté web : pouvoir supprimer définitivement une interventi
 - Mots de passe initiaux hachés argon2, définis par `SEED_TECHNICIEN_MOTDEPASSE` et `SEED_DIRECTEUR_MOTDEPASSE` dans `.env`, valeurs par défaut documentées dans `.env.example`.
 - Commande `tsx prisma/seed.ts` déclarée dans `prisma.config.ts` (`migrations.seed`), lancée par `npx prisma db seed`.
 
+### Création de compte technicien (US4.5, promu le 2026-09-16)
+Deuxième ticket du bloc « Comptes techniciens », juste après US4.6 (lecture seule). `POST /utilisateurs` crée **toujours** un compte `TECHNICIEN` : le rôle n'est pas un champ du `CreateUtilisateurDto`, cet endpoint n'est pas une création d'utilisateur générique (pas de création de compte `DIRECTEUR` en self-service, hors périmètre CDC). `motDePasse` validé `@MinLength(8)` (`class-validator`) — aucune exigence de complexité au-delà, cohérent avec les mots de passe du seed (`technicien123`/`directeur123`, déjà au-dessus de ce seuil).
+
+`UtilisateursService.creer()` vérifie l'unicité de l'identifiant via `findByIdentifiant()` **avant** l'écriture (409 explicite, message clair) plutôt que de laisser remonter la contrainte `@unique` Prisma (erreur `P2002` peu exploitable telle quelle côté client). Hash via `argon2.hash()` — même bibliothèque que `auth.service.ts` (vérification au login) et `prisma/seed.ts` (comptes initiaux), pas de nouvelle dépendance. `UtilisateursRepository.create()` utilise `select: CHAMPS_PUBLICS` (déjà défini pour `list()`) directement sur l'appel `create` Prisma : le hash ne transite jamais hors du repository, même pas de façon éphémère dans la réponse du contrôleur.
+
 ### Configuration (`.env`)
 `DATABASE_URL`, `JWT_SECRET`, `PHOTOS_DIR`, `PORT`. Aucune de ces valeurs en dur dans le code. `.env.example` versionné, `.env` non versionné.
 
@@ -218,7 +224,7 @@ Demande de Cédric côté web : pouvoir supprimer définitivement une interventi
 - Pas d'email, SMS, push.
 - Pas de génération PDF côté backend : l'export PDF (US3.9) est construit, mais entièrement côté web (`jspdf`, aucun endpoint dédié) — `GET /interventions/:id` existant suffisait. L'export CSV (US3.10) est construit, cf. section 4 — en JSON brut, la génération CSV elle-même vit côté web.
 - Pas de WebSocket.
-- Pas d'endpoints de gestion de comptes en self-service (US4.5, US4.7, US4.9 Nice to have, non construites) : les comptes sont créés par le seed. US4.6 (lister) ne nécessitait aucun endpoint nouveau — `GET /utilisateurs` existant suffisait, cf. `web/docs/architecture.md`.
+- Pas d'endpoints de désactivation ni de réinitialisation de mot de passe (US4.7, US4.9 Nice to have, non construites). US4.6 (lister) ne nécessitait aucun endpoint nouveau — `GET /utilisateurs` existant suffisait. US4.5 (créer) est construit, cf. section 4.
 - Champs `motifSignale` et `typeEquipement` : présents en base, **nullable**, jamais exigés par un endpoint MVP.
 
 ---

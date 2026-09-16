@@ -38,6 +38,16 @@ export class UtilisateursRepository {
     return this.prisma.utilisateur.findUnique({ where: { id } });
   }
 
+  create(data: {
+    nom: string;
+    identifiant: string;
+    motDePasseHash: string;
+    role: RoleUtilisateur;
+    actif: boolean;
+  }): Promise<UtilisateurPublic> {
+    return this.prisma.utilisateur.create({ data, select: CHAMPS_PUBLICS });
+  }
+
   list(filtre: {
     role?: RoleUtilisateur;
     actif?: boolean;
