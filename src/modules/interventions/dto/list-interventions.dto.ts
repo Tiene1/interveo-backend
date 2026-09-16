@@ -5,11 +5,6 @@ import { StatutIntervention } from '../../../generated/prisma/client.js';
 
 export class ListInterventionsDto extends PaginationDto {
   @IsOptional()
-  @IsString()
-  @IsNotEmpty()
-  client?: string;
-
-  @IsOptional()
   @IsUUID()
   technicienId?: string;
 
@@ -29,7 +24,11 @@ export class ListInterventionsDto extends PaginationDto {
   @IsDate()
   dateFin?: Date;
 
-  /** US3.8. Recherche libre sur adresse/motifSignale/problemeConstate/travauxRealises. */
+  /**
+   * US3.2 fusionne avec US3.8, le 2026-09-16 : un seul champ de recherche
+   * plutot que deux, sur nomClient/adresse/motifSignale/problemeConstate/
+   * travauxRealises (cf. web/docs/architecture.md).
+   */
   @IsOptional()
   @IsString()
   @IsNotEmpty()

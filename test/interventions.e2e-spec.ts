@@ -356,7 +356,7 @@ describe('Interventions - creation (e2e)', () => {
       });
   });
 
-  it('GET /interventions?client= filtre sur le nom du client', async () => {
+  it('GET /interventions?motCle= filtre sur le nom du client (US3.2 fusionne avec US3.8)', async () => {
     const clientUnique = `Filtre-${Date.now()}`;
     await request(app.getHttpServer())
       .post('/interventions')
@@ -365,7 +365,7 @@ describe('Interventions - creation (e2e)', () => {
       .expect(201);
 
     return request(app.getHttpServer())
-      .get(`/interventions?client=${clientUnique}`)
+      .get(`/interventions?motCle=${clientUnique}`)
       .set('Authorization', `Bearer ${tokenDirecteur}`)
       .expect(200)
       .expect((res) => {
@@ -377,6 +377,13 @@ describe('Interventions - creation (e2e)', () => {
           ANNULEE: 0,
         });
       });
+  });
+
+  it('GET /interventions?client= est rejete (400) : le parametre a fusionne dans motCle', () => {
+    return request(app.getHttpServer())
+      .get('/interventions?client=X')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .expect(400);
   });
 
   it('GET /interventions?technicienId= filtre sur le technicien', () => {
@@ -482,7 +489,7 @@ describe('Interventions - creation (e2e)', () => {
       .expect(201);
 
     return request(app.getHttpServer())
-      .get(`/interventions/export?client=${clientUnique}`)
+      .get(`/interventions/export?motCle=${clientUnique}`)
       .set('Authorization', `Bearer ${tokenDirecteur}`)
       .expect(200)
       .expect((res) => {

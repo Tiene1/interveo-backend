@@ -262,14 +262,6 @@
             }
           },
           {
-            "name": "client",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "technicienId",
             "required": false,
             "in": "query",
@@ -315,7 +307,7 @@
             "name": "motCle",
             "required": false,
             "in": "query",
-            "description": "US3.8. Recherche libre sur adresse/motifSignale/problemeConstate/travauxRealises.",
+            "description": "US3.2 fusionne avec US3.8, le 2026-09-16 : un seul champ de recherche\nplutot que deux, sur nomClient/adresse/motifSignale/problemeConstate/\ntravauxRealises (cf. web/docs/architecture.md).",
             "schema": {
               "type": "string"
             }
@@ -396,14 +388,6 @@
             }
           },
           {
-            "name": "client",
-            "required": false,
-            "in": "query",
-            "schema": {
-              "type": "string"
-            }
-          },
-          {
             "name": "technicienId",
             "required": false,
             "in": "query",
@@ -449,7 +433,7 @@
             "name": "motCle",
             "required": false,
             "in": "query",
-            "description": "US3.8. Recherche libre sur adresse/motifSignale/problemeConstate/travauxRealises.",
+            "description": "US3.2 fusionne avec US3.8, le 2026-09-16 : un seul champ de recherche\nplutot que deux, sur nomClient/adresse/motifSignale/problemeConstate/\ntravauxRealises (cf. web/docs/architecture.md).",
             "schema": {
               "type": "string"
             }

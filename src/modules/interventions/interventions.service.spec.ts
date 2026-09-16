@@ -142,7 +142,7 @@ describe('InterventionsService.lister', () => {
     const { service, repo } = build();
 
     const res = await service.lister({
-      client: 'Ivoire',
+      motCle: 'Ivoire',
       technicienId: 't1',
       page: 2,
       limit: 10,
@@ -150,12 +150,11 @@ describe('InterventionsService.lister', () => {
 
     expect(repo.list).toHaveBeenCalledWith(
       {
-        client: 'Ivoire',
         technicienId: 't1',
         statut: undefined,
         dateDebut: undefined,
         dateFin: undefined,
-        motCle: undefined,
+        motCle: 'Ivoire',
       },
       { page: 2, limit: 10 },
     );
@@ -175,7 +174,6 @@ describe('InterventionsService.lister', () => {
 
     expect(repo.list).toHaveBeenCalledWith(
       {
-        client: undefined,
         technicienId: undefined,
         statut: 'REALISEE',
         dateDebut: undefined,
@@ -195,7 +193,6 @@ describe('InterventionsService.lister', () => {
 
     expect(repo.list).toHaveBeenCalledWith(
       {
-        client: undefined,
         technicienId: undefined,
         statut: undefined,
         dateDebut,
@@ -206,14 +203,13 @@ describe('InterventionsService.lister', () => {
     );
   });
 
-  it('transmet motCle au repository quand il est fourni', async () => {
+  it('transmet motCle au repository quand il est fourni (fusionne desormais la recherche client, US3.2+US3.8)', async () => {
     const { service, repo } = build();
 
     await service.lister({ motCle: 'climatisation', page: 1, limit: 20 });
 
     expect(repo.list).toHaveBeenCalledWith(
       {
-        client: undefined,
         technicienId: undefined,
         statut: undefined,
         dateDebut: undefined,
@@ -243,19 +239,18 @@ describe('InterventionsService.exporter', () => {
     const { service, repo } = build();
 
     const res = await service.exporter({
-      client: 'Ivoire',
+      motCle: 'Ivoire',
       statut: 'REALISEE',
       page: 1,
       limit: 20,
     });
 
     expect(repo.listPourExport).toHaveBeenCalledWith({
-      client: 'Ivoire',
       technicienId: undefined,
       statut: 'REALISEE',
       dateDebut: undefined,
       dateFin: undefined,
-      motCle: undefined,
+      motCle: 'Ivoire',
     });
     expect(res).toEqual([{ id: 'i1' }]);
   });

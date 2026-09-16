@@ -90,7 +90,6 @@ export class InterventionsService {
       );
     }
     return {
-      client: dto.client,
       technicienId: dto.technicienId,
       statut: dto.statut,
       dateDebut: dto.dateDebut,

@@ -34,7 +34,6 @@ export interface ModifierInterventionData {
 }
 
 export interface FiltreInterventions {
-  client?: string;
   technicienId?: string;
   statut?: StatutIntervention;
   dateDebut?: Date;
@@ -82,9 +81,6 @@ function construireWhere(filtre: FiltreInterventions): Prisma.InterventionWhereI
   if (filtre.dateFin) filtreDatePrevue.lt = lendemainMinuit(filtre.dateFin);
 
   return {
-    ...(filtre.client
-      ? { nomClient: { contains: filtre.client, mode: 'insensitive' } }
-      : {}),
     ...(filtre.technicienId ? { technicienId: filtre.technicienId } : {}),
     ...(filtre.statut ? { statut: filtre.statut } : {}),
     ...(Object.keys(filtreDatePrevue).length > 0
@@ -93,6 +89,7 @@ function construireWhere(filtre: FiltreInterventions): Prisma.InterventionWhereI
     ...(filtre.motCle
       ? {
           OR: [
+            { nomClient: { contains: filtre.motCle, mode: 'insensitive' } },
             { adresse: { contains: filtre.motCle, mode: 'insensitive' } },
             { motifSignale: { contains: filtre.motCle, mode: 'insensitive' } },
             { problemeConstate: { contains: filtre.motCle, mode: 'insensitive' } },
