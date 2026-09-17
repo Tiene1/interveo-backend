@@ -325,4 +325,172 @@ describe('Utilisateurs (e2e)', () => {
       .send({ motDePasse: MOT_DE_PASSE_VALIDE })
       .expect(401);
   });
+
+  it('PATCH /utilisateurs/:id/reactiver (directeur) reactive un TECHNICIEN desactive, connexion de nouveau possible', async () => {
+    const identifiant = `reactiver-${Date.now()}`;
+    const creation = await request(app.getHttpServer())
+      .post('/utilisateurs')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send({ nom: 'A Reactiver', identifiant, motDePasse: MOT_DE_PASSE_VALIDE })
+      .expect(201);
+
+    await request(app.getHttpServer())
+      .patch(`/utilisateurs/${creation.body.id}/desactiver`)
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .expect(200);
+
+    await request(app.getHttpServer())
+      .patch(`/utilisateurs/${creation.body.id}/reactiver`)
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .expect(200)
+      .expect((res) => {
+        expect(res.body).toMatchObject({ id: creation.body.id, actif: true });
+      });
+
+    return request(app.getHttpServer())
+      .post('/auth/login')
+      .send({ identifiant, motDePasse: MOT_DE_PASSE_VALIDE })
+      .expect(200)
+      .expect((res) => {
+        expect(res.body).toHaveProperty('accessToken');
+      });
+  });
+
+  it('PATCH /utilisateurs/:id/reactiver est idempotent (deja actif)', async () => {
+    const identifiant = `reactiver-idem-${Date.now()}`;
+    const creation = await request(app.getHttpServer())
+      .post('/utilisateurs')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send({ nom: 'Idempotent Reactif', identifiant, motDePasse: MOT_DE_PASSE_VALIDE })
+      .expect(201);
+
+    return request(app.getHttpServer())
+      .patch(`/utilisateurs/${creation.body.id}/reactiver`)
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .expect(200)
+      .expect((res) => {
+        expect(res.body.actif).toBe(true);
+      });
+  });
+
+  it('PATCH /utilisateurs/:id/reactiver renvoie 400 sur le compte DIRECTEUR', () => {
+    return request(app.getHttpServer())
+      .patch(`/utilisateurs/${directeurId}/reactiver`)
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .expect(400);
+  });
+
+  it('PATCH /utilisateurs/:id/reactiver renvoie 404 si l utilisateur n existe pas', () => {
+    return request(app.getHttpServer())
+      .patch('/utilisateurs/00000000-0000-0000-0000-000000000000/reactiver')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .expect(404);
+  });
+
+  it('PATCH /utilisateurs/:id/reactiver avec un jeton technicien renvoie 403', () => {
+    return request(app.getHttpServer())
+      .patch(`/utilisateurs/${directeurId}/reactiver`)
+      .set('Authorization', `Bearer ${tokenTechnicien}`)
+      .expect(403);
+  });
+
+  it('PATCH /utilisateurs/:id/reactiver sans jeton renvoie 401', () => {
+    return request(app.getHttpServer())
+      .patch(`/utilisateurs/${directeurId}/reactiver`)
+      .expect(401);
+  });
+
+  it('DELETE /utilisateurs/:id (directeur) supprime un TECHNICIEN inactif sans historique', async () => {
+    const identifiant = `supprimer-${Date.now()}`;
+    const creation = await request(app.getHttpServer())
+      .post('/utilisateurs')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send({ nom: 'A Supprimer', identifiant, motDePasse: MOT_DE_PASSE_VALIDE })
+      .expect(201);
+
+    await request(app.getHttpServer())
+      .patch(`/utilisateurs/${creation.body.id}/desactiver`)
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .expect(200);
+
+    await request(app.getHttpServer())
+      .delete(`/utilisateurs/${creation.body.id}`)
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .expect(204);
+
+    return request(app.getHttpServer())
+      .patch(`/utilisateurs/${creation.body.id}/reactiver`)
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .expect(404);
+  });
+
+  it('DELETE /utilisateurs/:id renvoie 409 si le compte est encore actif', async () => {
+    const identifiant = `supprimer-actif-${Date.now()}`;
+    const creation = await request(app.getHttpServer())
+      .post('/utilisateurs')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send({ nom: 'Encore Actif', identifiant, motDePasse: MOT_DE_PASSE_VALIDE })
+      .expect(201);
+
+    return request(app.getHttpServer())
+      .delete(`/utilisateurs/${creation.body.id}`)
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .expect(409);
+  });
+
+  it('DELETE /utilisateurs/:id renvoie 409 si le technicien a des interventions dans son historique', async () => {
+    const identifiant = `supprimer-historique-${Date.now()}`;
+    const creation = await request(app.getHttpServer())
+      .post('/utilisateurs')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send({ nom: 'Avec Historique', identifiant, motDePasse: MOT_DE_PASSE_VALIDE })
+      .expect(201);
+
+    await request(app.getHttpServer())
+      .post('/interventions')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .send({
+        nomClient: 'Hotel Ivoire',
+        adresse: 'Boulevard de Marseille, Cocody',
+        telephone1: '0102030405',
+        datePrevue: '2026-09-20T09:00:00.000Z',
+        technicienId: creation.body.id,
+      })
+      .expect(201);
+
+    await request(app.getHttpServer())
+      .patch(`/utilisateurs/${creation.body.id}/desactiver`)
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .expect(200);
+
+    return request(app.getHttpServer())
+      .delete(`/utilisateurs/${creation.body.id}`)
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .expect(409);
+  });
+
+  it('DELETE /utilisateurs/:id renvoie 400 sur le compte DIRECTEUR', () => {
+    return request(app.getHttpServer())
+      .delete(`/utilisateurs/${directeurId}`)
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .expect(400);
+  });
+
+  it('DELETE /utilisateurs/:id renvoie 404 si l utilisateur n existe pas', () => {
+    return request(app.getHttpServer())
+      .delete('/utilisateurs/00000000-0000-0000-0000-000000000000')
+      .set('Authorization', `Bearer ${tokenDirecteur}`)
+      .expect(404);
+  });
+
+  it('DELETE /utilisateurs/:id avec un jeton technicien renvoie 403', () => {
+    return request(app.getHttpServer())
+      .delete(`/utilisateurs/${directeurId}`)
+      .set('Authorization', `Bearer ${tokenTechnicien}`)
+      .expect(403);
+  });
+
+  it('DELETE /utilisateurs/:id sans jeton renvoie 401', () => {
+    return request(app.getHttpServer()).delete(`/utilisateurs/${directeurId}`).expect(401);
+  });
 });

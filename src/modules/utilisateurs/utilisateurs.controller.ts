@@ -1,7 +1,9 @@
 import {
   Body,
   Controller,
+  Delete,
   Get,
+  HttpCode,
   Param,
   ParseUUIDPipe,
   Patch,
@@ -46,5 +48,16 @@ export class UtilisateursController {
     @Body() dto: ReinitialiserMotDePasseDto,
   ): Promise<UtilisateurPublic> {
     return this.service.reinitialiserMotDePasse(id, dto);
+  }
+
+  @Patch(':id/reactiver')
+  reactiver(@Param('id', ParseUUIDPipe) id: string): Promise<UtilisateurPublic> {
+    return this.service.reactiver(id);
+  }
+
+  @Delete(':id')
+  @HttpCode(204)
+  supprimer(@Param('id', ParseUUIDPipe) id: string): Promise<void> {
+    return this.service.supprimer(id);
   }
 }

@@ -63,6 +63,35 @@ export class UtilisateursService {
     return this.repo.updateMotDePasseHash(id, motDePasseHash);
   }
 
+  /** Reserve aux comptes TECHNICIEN. Idempotent, symetrique de desactiver(). */
+  async reactiver(id: string): Promise<UtilisateurPublic> {
+    await this.trouverTechnicienOuEchouer(id);
+    return this.repo.updateActif(id, true);
+  }
+
+  /**
+   * Suppression definitive. Reservee aux comptes TECHNICIEN deja desactives
+   * (409 sinon, on ne supprime pas un compte en cours d'usage) et sans
+   * historique d'intervention, quel que soit son statut (409 sinon) : perdre
+   * la preuve d'une intervention deja realisee serait irreversible. Meme
+   * principe que la suppression d'intervention (US3.11, ANNULEE uniquement).
+   */
+  async supprimer(id: string): Promise<void> {
+    const utilisateur = await this.trouverTechnicienOuEchouer(id);
+    if (utilisateur.actif) {
+      throw new ConflictException(
+        'Desactivez ce compte avant de le supprimer',
+      );
+    }
+    const nombreInterventions = await this.repo.compterInterventionsAttribuees(id);
+    if (nombreInterventions > 0) {
+      throw new ConflictException(
+        'Ce technicien a des interventions dans son historique, suppression impossible',
+      );
+    }
+    await this.repo.delete(id);
+  }
+
   private async trouverTechnicienOuEchouer(id: string): Promise<Utilisateur> {
     const utilisateur = await this.repo.findById(id);
     if (!utilisateur) {

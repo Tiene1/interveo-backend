@@ -74,4 +74,13 @@ export class UtilisateursRepository {
       select: CHAMPS_PUBLICS,
     });
   }
+
+  /** Toutes interventions confondues (statut indifferent) : sert de garde-fou avant suppression. */
+  compterInterventionsAttribuees(technicienId: string): Promise<number> {
+    return this.prisma.intervention.count({ where: { technicienId } });
+  }
+
+  async delete(id: string): Promise<void> {
+    await this.prisma.utilisateur.delete({ where: { id } });
+  }
 }

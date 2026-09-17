@@ -236,6 +236,69 @@
         ]
       }
     },
+    "/utilisateurs/{id}/reactiver": {
+      "patch": {
+        "operationId": "UtilisateursController_reactiver",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
+          }
+        },
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "tags": [
+          "Utilisateurs"
+        ]
+      }
+    },
+    "/utilisateurs/{id}": {
+      "delete": {
+        "operationId": "UtilisateursController_supprimer",
+        "parameters": [
+          {
+            "name": "id",
+            "required": true,
+            "in": "path",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "tags": [
+          "Utilisateurs"
+        ]
+      }
+    },
     "/interventions": {
       "get": {
         "operationId": "InterventionsController_lister",

@@ -150,3 +150,105 @@ describe('UtilisateursService.reinitialiserMotDePasse', () => {
     expect(repo.updateMotDePasseHash).not.toHaveBeenCalled();
   });
 });
+
+describe('UtilisateursService.reactiver', () => {
+  it('reactive un compte TECHNICIEN', async () => {
+    const repo = {
+      findById: vi.fn().mockResolvedValue({ id: 'u1', role: 'TECHNICIEN', actif: false }),
+      updateActif: vi.fn().mockResolvedValue({ id: 'u1', actif: true }),
+    } as unknown as UtilisateursRepository;
+    const service = new UtilisateursService(repo);
+
+    const res = await service.reactiver('u1');
+
+    expect(repo.updateActif).toHaveBeenCalledWith('u1', true);
+    expect(res).toEqual({ id: 'u1', actif: true });
+  });
+
+  it('404 si l utilisateur n existe pas', async () => {
+    const repo = {
+      findById: vi.fn().mockResolvedValue(null),
+      updateActif: vi.fn(),
+    } as unknown as UtilisateursRepository;
+    const service = new UtilisateursService(repo);
+
+    await expect(service.reactiver('inconnu')).rejects.toThrow(NotFoundException);
+    expect(repo.updateActif).not.toHaveBeenCalled();
+  });
+
+  it('400 si le compte n est pas un TECHNICIEN', async () => {
+    const repo = {
+      findById: vi.fn().mockResolvedValue({ id: 'u1', role: 'DIRECTEUR' }),
+      updateActif: vi.fn(),
+    } as unknown as UtilisateursRepository;
+    const service = new UtilisateursService(repo);
+
+    await expect(service.reactiver('u1')).rejects.toThrow(BadRequestException);
+    expect(repo.updateActif).not.toHaveBeenCalled();
+  });
+});
+
+describe('UtilisateursService.supprimer', () => {
+  it('supprime un compte TECHNICIEN inactif sans historique d intervention', async () => {
+    const repo = {
+      findById: vi.fn().mockResolvedValue({ id: 'u1', role: 'TECHNICIEN', actif: false }),
+      compterInterventionsAttribuees: vi.fn().mockResolvedValue(0),
+      delete: vi.fn().mockResolvedValue(undefined),
+    } as unknown as UtilisateursRepository;
+    const service = new UtilisateursService(repo);
+
+    await service.supprimer('u1');
+
+    expect(repo.compterInterventionsAttribuees).toHaveBeenCalledWith('u1');
+    expect(repo.delete).toHaveBeenCalledWith('u1');
+  });
+
+  it('409 si le compte est encore actif', async () => {
+    const repo = {
+      findById: vi.fn().mockResolvedValue({ id: 'u1', role: 'TECHNICIEN', actif: true }),
+      compterInterventionsAttribuees: vi.fn(),
+      delete: vi.fn(),
+    } as unknown as UtilisateursRepository;
+    const service = new UtilisateursService(repo);
+
+    await expect(service.supprimer('u1')).rejects.toThrow(ConflictException);
+    expect(repo.compterInterventionsAttribuees).not.toHaveBeenCalled();
+    expect(repo.delete).not.toHaveBeenCalled();
+  });
+
+  it('409 si le technicien a au moins une intervention dans son historique', async () => {
+    const repo = {
+      findById: vi.fn().mockResolvedValue({ id: 'u1', role: 'TECHNICIEN', actif: false }),
+      compterInterventionsAttribuees: vi.fn().mockResolvedValue(3),
+      delete: vi.fn(),
+    } as unknown as UtilisateursRepository;
+    const service = new UtilisateursService(repo);
+
+    await expect(service.supprimer('u1')).rejects.toThrow(ConflictException);
+    expect(repo.delete).not.toHaveBeenCalled();
+  });
+
+  it('404 si l utilisateur n existe pas', async () => {
+    const repo = {
+      findById: vi.fn().mockResolvedValue(null),
+      compterInterventionsAttribuees: vi.fn(),
+      delete: vi.fn(),
+    } as unknown as UtilisateursRepository;
+    const service = new UtilisateursService(repo);
+
+    await expect(service.supprimer('inconnu')).rejects.toThrow(NotFoundException);
+    expect(repo.delete).not.toHaveBeenCalled();
+  });
+
+  it('400 si le compte n est pas un TECHNICIEN', async () => {
+    const repo = {
+      findById: vi.fn().mockResolvedValue({ id: 'u1', role: 'DIRECTEUR', actif: false }),
+      compterInterventionsAttribuees: vi.fn(),
+      delete: vi.fn(),
+    } as unknown as UtilisateursRepository;
+    const service = new UtilisateursService(repo);
+
+    await expect(service.supprimer('u1')).rejects.toThrow(BadRequestException);
+    expect(repo.delete).not.toHaveBeenCalled();
+  });
+});
