@@ -1,6 +1,6 @@
-# API SIM Interventions
+# API Interveo
 
-Backend de l'application de suivi d'interventions techniques de SOCIÉTÉ IVOIRE MAINTENANCE (SIM).
+Backend de l'application de suivi d'interventions techniques pour PME du bâtiment (électricité, sécurité électronique, domotique, plomberie, climatisation...).
 
 - Stack : NestJS 12 (ESM) + Prisma + PostgreSQL.
 - Pattern : architecture en couches, monolithe modulaire.

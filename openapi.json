@@ -790,8 +790,8 @@
     }
   },
   "info": {
-    "title": "API SIM Interventions",
-    "description": "Suivi des interventions techniques de la Societe Ivoire Maintenance.\n\nAuthentification par jeton JWT (Bearer). Recuperer un jeton via POST /auth/login,\npuis cliquer sur « Authorize » et le coller.\n\nRoles : DIRECTEUR (back-office) et TECHNICIEN (application mobile, synchronisation).",
+    "title": "API Interveo",
+    "description": "Suivi des interventions techniques pour PME du batiment (electricite, securite electronique, domotique...).\n\nAuthentification par jeton JWT (Bearer). Recuperer un jeton via POST /auth/login,\npuis cliquer sur « Authorize » et le coller.\n\nRoles : DIRECTEUR (back-office) et TECHNICIEN (application mobile, synchronisation).",
     "version": "0.1.0",
     "contact": {}
   },

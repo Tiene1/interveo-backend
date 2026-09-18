@@ -1,8 +1,7 @@
-# ADR — Architecture logicielle : SIM Interventions
+# ADR — Architecture logicielle : Interveo
 
-**Projet** : sim_interventions_mobile
-**Client** : SOCIÉTÉ IVOIRE MAINTENANCE (SIM), Abidjan
-**Contact** : M. Kouassi Bertin, Directeur d'exploitation
+**Produit** : Interveo
+**Constat** : les PME du bâtiment (électricité, sécurité électronique, domotique, plomberie, climatisation...) suivent souvent leurs interventions techniques sur papier ou tableur, sans traçabilité fiable de qui a fait quoi, quand et chez quel client.
 **Auteur** : NISSI BAT SERVICES, agent Architecte Software
 **Date** : 2026-09-01
 **Statut** : validée
@@ -14,11 +13,11 @@
 ## 1. Résumé du projet (volet logiciel)
 
 **Description**
-SIM Interventions est une application mobile de terrain, doublée d'un back-office web de consultation, qui permet aux techniciens de SIM d'enregistrer leurs interventions techniques et à M. Kouassi de les créer, attribuer et suivre, afin d'avoir une traçabilité fiable de qui a fait quoi, quand et chez qui.
+Interveo est une application mobile de terrain, doublée d'un back-office web de consultation, qui permet aux techniciens d'une PME du bâtiment d'enregistrer leurs interventions techniques et à son directeur de les créer, attribuer et suivre, afin d'avoir une traçabilité fiable de qui a fait quoi, quand et chez qui.
 
 **Utilisateurs**
-- **Technicien** (4) : application mobile, terrain, Android, hors ligne. Consulte ses interventions attribuées, les complète (problème constaté, travaux, photos avant et après), clôture.
-- **M. Kouassi Bertin** (Directeur d'exploitation, administrateur principal) : back-office web, au bureau. Crée et attribue les interventions, consulte l'historique, filtre par client et par technicien.
+- **Technicien** : application mobile, terrain, Android, hors ligne. Consulte ses interventions attribuées, les complète (problème constaté, travaux, photos avant et après), clôture.
+- **Directeur** (administrateur principal) : back-office web, au bureau. Crée et attribue les interventions, consulte l'historique, filtre par client et par technicien.
 
 Pas de volet IoT, pas de device.
 
@@ -28,7 +27,7 @@ Pas de volet IoT, pas de device.
 - Photo d'intervention (avant et après, 1 à 2 par catégorie) : non sensible, ~5 000 par an.
 
 **Contexte projet (Bloc 5)**
-Délai souhaité environ 2 mois, outil interne et non un produit à vendre, tolérance sur l'imperfection initiale. Développé par Cédric seul avec les agents Claude Code.
+Né d'un constat de terrain plutôt que d'un client identifié au départ. Délai souhaité environ 2 mois, tolérance sur l'imperfection initiale. Développé par Cédric seul avec les agents Claude Code.
 
 ---
 
@@ -81,7 +80,7 @@ Le Controller ne contient pas de logique métier. Le Service ne fait pas d'accè
 
 ## 4. Décision d'architecture — Web (back-office)
 
-**Type** : Web, Next.js 14. Utilisateur unique : M. Kouassi.
+**Type** : Web, Next.js 14. Utilisateur unique : le directeur.
 
 **Features**
 - `auth` : connexion.
@@ -155,7 +154,7 @@ Cache Redis, email, SMS, push, génération PDF ou CSV, WebSocket, authentificat
 
 ## 9. Schémas Draw.io à produire
 
-- [ ] C4 niveau 1, Contexte : SIM Interventions plus technicien, M. Kouassi et Google Maps.
+- [ ] C4 niveau 1, Contexte : Interveo plus technicien, le directeur et Google Maps.
 - [ ] C4 niveau 2, Conteneurs : application Flutter, back-office Next.js, API NestJS, PostgreSQL, stockage fichiers (volume VPS), Google Maps (externe), avec technologies et déploiement.
 - [ ] C4 niveau 3, Composants : modules internes de l'API (auth, utilisateurs, interventions, photos, sync).
 - Pas de Flow EDA (architecture en couches, pas d'événements).
@@ -166,7 +165,7 @@ Cache Redis, email, SMS, push, génération PDF ou CSV, WebSocket, authentificat
 
 | Risque | Mitigation |
 |---|---|
-| Conflit de synchronisation : un technicien clôture hors ligne une intervention que M. Kouassi vient d'annuler | L'annulation du directeur gagne. À la synchronisation, la clôture est rejetée et signalée au technicien. Le `misAJourLe` serveur fait autorité. |
+| Conflit de synchronisation : un technicien clôture hors ligne une intervention que le directeur vient d'annuler | L'annulation du directeur gagne. À la synchronisation, la clôture est rejetée et signalée au technicien. Le `misAJourLe` serveur fait autorité. |
 | Perte de données terrain (batterie, crash de l'application) avant la synchronisation | US2.9 : persistance locale immédiate à chaque champ. La donnée survit à la fermeture de l'application. |
 | Croissance du volume de photos sur le disque du VPS | Compression à la prise, côté mobile. Surveillance de l'espace disque. Interface `StockageFichiers` prête pour une migration vers du stockage objet. |
 | API exposée sur Internet | HTTPS (Nginx et Let's Encrypt), JWT, validation stricte des entrées, rate limiting basique, aucun secret en dur. |
@@ -205,7 +204,7 @@ Les modèles partagés extraits des substantifs des 22 User Stories MVP, plus la
 | Champ | Type | Obligatoire à la création | Rempli quand | Origine |
 |---|---|---|---|---|
 | id | uuid | auto | création serveur | — |
-| nomClient | string | oui | création (M. Kouassi) | US1.1, US2.2, US3.2, US3.6 |
+| nomClient | string | oui | création (le directeur) | US1.1, US2.2, US3.2, US3.6 |
 | adresse | string | oui | création | US1.8, US2.3, US3.6 |
 | telephone1 | string | oui | création | US1.8, US2.3 |
 | telephone2 | string, nullable | non | création | US1.8 |
@@ -253,8 +252,8 @@ Les modèles partagés extraits des substantifs des 22 User Stories MVP, plus la
 ## Offline et state partagé
 
 - Côté mobile (Flutter), les tables locales ajoutent des champs de synchronisation : `idServeur`, `statutSync` (LOCAL, ENVOYE, CONFIRME), `modifieLocalementLe` sur Intervention et Photo.
-- `Intervention.statut` est modifié par deux acteurs (M. Kouassi annule via US1.7, technicien clôture via US2.10) et lu par les deux (US2.1, US3.1) : state partagé géré avec Riverpod côté mobile, React Query côté back-office.
-- Cas limite pour la Phase III : un technicien clôture hors ligne une intervention que M. Kouassi vient d'annuler. Règle retenue : l'annulation du directeur gagne, la clôture est rejetée et signalée au technicien à la synchronisation.
+- `Intervention.statut` est modifié par deux acteurs (le directeur annule via US1.7, technicien clôture via US2.10) et lu par les deux (US2.1, US3.1) : state partagé géré avec Riverpod côté mobile, React Query côté back-office.
+- Cas limite pour la Phase III : un technicien clôture hors ligne une intervention que le directeur vient d'annuler. Règle retenue : l'annulation du directeur gagne, la clôture est rejetée et signalée au technicien à la synchronisation.
 
 ## Modules backend (architecture en couches)
 
@@ -284,7 +283,7 @@ Frontend au niveau cahier des charges (écran plus éléments visibles). Backend
 | US4.4 | Utilisateur (lecture) | [Back-office] Écran Connexion : identifiant, mot de passe, bouton Se connecter, message d'erreur | `POST /auth/login` (même endpoint) vers JWT rôle DIRECTEUR | lecture `utilisateur` par identifiant |
 | US4.2 | Utilisateur (via token) | [Mobile] JWT en stockage sécurisé, au lancement token valide vers accès direct sans ressaisie, y compris hors réseau | JWT longue durée, `GET /auth/moi` pour la validation au démarrage quand en ligne | aucune écriture, JWT stateless |
 
-## E1 — Création et attribution (back-office, M. Kouassi)
+## E1 — Création et attribution (back-office, le directeur)
 
 | US | Model(s) | Frontend (cible : écran plus éléments) | Backend (endpoint) | BDD |
 |---|---|---|---|---|
@@ -308,7 +307,7 @@ Frontend au niveau cahier des charges (écran plus éléments visibles). Backend
 | US2.10 | Intervention (modification locale) | [Mobile] Bouton Clôturer, actif seulement si problème constaté et travaux réalisés renseignés, après clôture « réalisée » et non modifiable | pas d'appel direct hors ligne, la clôture part au push de synchronisation | écriture locale `statut = REALISEE`, `dateRealisation = maintenant`, `statutSync = LOCAL` |
 | US2.11 | Intervention, Photo (local vers serveur) | [Mobile] Synchronisation déclenchée à la reconnexion : push des changements plus upload photos, puis pull delta, indicateur « synchronisée » | `POST /sync/interventions` (batch des clôtures) plus `POST /interventions/:id/photos` (multipart), renvoie confirmations et conflits | modification `intervention` (problème, travaux, statut, dateRealisation, misAJourLe), écriture `photo.cheminFichier` via `StockageFichiers`, écriture fichier sur le volume VPS |
 
-## E3 — Suivi et traçabilité (back-office, M. Kouassi)
+## E3 — Suivi et traçabilité (back-office, le directeur)
 
 | US | Model(s) | Frontend (cible : écran plus éléments) | Backend (endpoint) | BDD |
 |---|---|---|---|---|
@@ -324,7 +323,7 @@ Frontend au niveau cahier des charges (écran plus éléments visibles). Backend
 
 ## Signaux de state partagé
 
-`Intervention.statut` est écrit par M. Kouassi (US1.7 annuler) et par le technicien (US2.10 clôturer), et lu par les deux (US2.1, US3.1) : Riverpod côté mobile, React Query côté back-office.
+`Intervention.statut` est écrit par le directeur (US1.7 annuler) et par le technicien (US2.10 clôturer), et lu par les deux (US2.1, US3.1) : Riverpod côté mobile, React Query côté back-office.
 
 ---
 

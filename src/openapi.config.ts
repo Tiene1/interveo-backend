@@ -6,10 +6,10 @@ import { DocumentBuilder } from '@nestjs/swagger';
  */
 export function configOpenApi() {
   return new DocumentBuilder()
-    .setTitle('API SIM Interventions')
+    .setTitle('API Interveo')
     .setDescription(
       [
-        'Suivi des interventions techniques de la Societe Ivoire Maintenance.',
+        'Suivi des interventions techniques pour PME du batiment (electricite, securite electronique, domotique...).',
         '',
         "Authentification par jeton JWT (Bearer). Recuperer un jeton via POST /auth/login,",
         'puis cliquer sur « Authorize » et le coller.',

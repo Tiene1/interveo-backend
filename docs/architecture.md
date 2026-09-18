@@ -1,4 +1,4 @@
-# architecture.md — Cible `backend/` : API SIM Interventions
+# architecture.md — Cible `backend/` : API Interveo
 
 Structure spécifique au dépôt backend. La fiche ADR complète et le socle commun sont dans `docs/ADR.md`, qui fait foi.
 
@@ -236,6 +236,15 @@ Retour de Cédric (grille de recette Nice to have) : « quand on desactive un te
 - `DELETE /utilisateurs/:id` : suppression définitive, gardée par deux conditions successives, chacune un 409 distinct — (1) **le compte doit déjà être désactivé** (`actif === false`), on ne supprime jamais un compte en cours d'usage, cohérent avec le parcours décrit par Cédric (désactiver d'abord, supprimer ensuite) ; (2) **aucune intervention dans l'historique**, tous statuts confondus (`UtilisateursRepository.compterInterventionsAttribuees()`, `prisma.intervention.count({where:{technicienId}})`) — décision prise via `AskUserQuestion` avant d'implémenter (le risque identifié : perdre la preuve d'une intervention déjà réalisée serait irréversible), option retenue **« Blocage si historique non vide »** plutôt que soft-delete ou détachement des interventions. Même principe que la suppression d'intervention (US3.11, 2026-09-15) : blocage strict plutôt que best-effort. `UtilisateursRepository.compterInterventionsAttribuees()` interroge directement le modèle `Intervention` depuis le repository `utilisateurs` (pas de nouvelle dépendance inter-module vers `InterventionsModule` pour une seule requête de comptage) — même logique déjà en place dans l'autre sens (`interventions.repository.ts` sélectionne des champs `Utilisateur` via la relation `technicien`). `204 No Content` en succès, comme `DELETE /interventions/:id`. `openapi.json` régénéré.
 
 Vérifié par les tests e2e : suppression réussie (compte introuvable ensuite, 404 sur une tentative de réactivation) ; 409 si encore actif ; 409 si au moins une intervention existe (créée puis le compte désactivé avant la tentative de suppression) ; 400/404/403/401 comme les autres routes d'action de ce module.
+
+### Renommage du produit : SIM Interventions → Interveo (2026-09-18)
+Avant de préparer le déploiement (GitHub, hébergement gratuit), Cédric a repositionné le projet : plutôt qu'un outil bâti pour un client fictif nommé (SOCIÉTÉ IVOIRE MAINTENANCE, M. Kouassi Bertin), le narratif devient un constat de terrain générique — les PME du bâtiment (électricité, sécurité électronique, domotique...) manquent d'un outil simple de suivi d'interventions. Objectif explicite : rendre le repo présentable dans un portfolio.
+
+**Périmètre du renommage, décidé avec Cédric avant de commencer** (deux options soumises, choix explicite) :
+- **Visible et contexte uniquement** : titre Swagger (`openapi.config.ts`, régénère `openapi.json`), `package.json` (`description`, pas `name`), `README.md`, `http/bruno.json`/`http/README.md`, commentaire d'en-tête `prisma/schema.prisma`, et le contexte narratif de `docs/ADR.md`/`docs/architecture.md` (« M. Kouassi » → « le directeur », rôle déjà générique dans l'enum `RoleUtilisateur.DIRECTEUR`).
+- **Explicitement hors périmètre** : `package.json.name` (`sim-interventions-api`, identifiant technique npm, jamais publié), les comptes du seed (`kouassi`, `koffi`, `awa`, `serge`, `ismael` — données fonctionnelles réelles utilisées par les tests e2e et le dev local, pas de la marque), les fixtures de tests (`Kouassi Bertin`, `Koffi N'Guessan`... dans les `*.spec.ts`, exemples de données sans rapport avec le branding).
+
+**Note pour la suite** : les mockups statiques (`http/`, pas concerné — voir plus haut) n'existent pas côté backend, contrairement à `web/design/*.html` et `mobile/design/*.html` qui mentionnent encore l'ancien nom (maquettes historiques, non servies par l'app, notées en dette technique dans les architecture.md de ces deux dépôts plutôt que corrigées ici).
 
 ### Configuration (`.env`)
 `DATABASE_URL`, `JWT_SECRET`, `PHOTOS_DIR`, `PORT`. Aucune de ces valeurs en dur dans le code. `.env.example` versionné, `.env` non versionné.

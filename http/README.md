@@ -1,4 +1,4 @@
-# Collection Bruno — API SIM Interventions
+# Collection Bruno — API Interveo
 
 Tests d'API bout-en-bout, versionnés avec le code. Format texte [Bruno](https://usebruno.com)
 (`.bru`), lisibles en diff et exécutables sans compte ni cloud.

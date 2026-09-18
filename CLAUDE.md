@@ -1,6 +1,6 @@
-# CLAUDE.md — Dépôt `backend/` : API SIM Interventions
+# CLAUDE.md — Dépôt `backend/` : API Interveo
 
-Règles pour l'agent Claude Code de ce dépôt. Tu écris le backend NestJS de SIM Interventions.
+Règles pour l'agent Claude Code de ce dépôt. Tu écris le backend NestJS d'Interveo, un outil de suivi d'interventions techniques pour PME du bâtiment (électricité, sécurité électronique, domotique, plomberie, climatisation...).
 
 ## Sources de vérité
 

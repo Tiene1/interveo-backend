@@ -1,4 +1,4 @@
-// Socle commun SIM Interventions - voir docs/ADR.md
+// Socle commun Interveo - voir docs/ADR.md
 // Un champ qui manque plus tard = ajout de champ, jamais une refonte.
 
 generator client {
