@@ -154,6 +154,23 @@ describe('Photos (e2e)', () => {
       });
   });
 
+  it('GET /photos/:id par un technicien non assigne renvoie 403, par l assigne renvoie 200', async () => {
+    const up = await post(tokenKoffi)
+      .field('categorie', 'APRES')
+      .attach('fichier', PNG_1PX, { filename: 'b.png', contentType: 'image/png' })
+      .expect(201);
+
+    await request(app.getHttpServer())
+      .get(`/photos/${up.body.id}`)
+      .set('Authorization', `Bearer ${tokenAwa}`)
+      .expect(403);
+
+    await request(app.getHttpServer())
+      .get(`/photos/${up.body.id}`)
+      .set('Authorization', `Bearer ${tokenKoffi}`)
+      .expect(200);
+  });
+
   it('GET /photos/:id inconnu renvoie 404', () => {
     return request(app.getHttpServer())
       .get('/photos/00000000-0000-4000-8000-000000000000')

@@ -109,12 +109,12 @@ describe('PhotosService.ajouter', () => {
 });
 
 describe('PhotosService.servir', () => {
-  it('renvoie le buffer et le mimetype deduit de l extension', async () => {
+  it('renvoie le buffer et le mimetype deduit de l extension (directeur)', async () => {
     const { service } = build({
-      photo: { id: 'p1', cheminFichier: 'i1/abc.png' },
+      photo: { id: 'p1', interventionId: 'i1', cheminFichier: 'i1/abc.png' },
     });
 
-    const f = await service.servir('p1');
+    const f = await service.servir('p1', directeur);
 
     expect(f.mimetype).toBe('image/png');
     expect(f.buffer.toString()).toBe('contenu image');
@@ -122,20 +122,39 @@ describe('PhotosService.servir', () => {
 
   it('404 si la photo n existe pas en base', async () => {
     const { service } = build({ photo: null });
-    await expect(service.servir('p1')).rejects.toBeInstanceOf(
+    await expect(service.servir('p1', directeur)).rejects.toBeInstanceOf(
       NotFoundException,
     );
   });
 
   it('404 si le fichier est absent du stockage', async () => {
     const { service, stockage } = build({
-      photo: { id: 'p1', cheminFichier: 'i1/abc.png' },
+      photo: { id: 'p1', interventionId: 'i1', cheminFichier: 'i1/abc.png' },
     });
     (stockage.read as ReturnType<typeof vi.fn>).mockRejectedValue(
       new Error('ENOENT'),
     );
-    await expect(service.servir('p1')).rejects.toBeInstanceOf(
+    await expect(service.servir('p1', directeur)).rejects.toBeInstanceOf(
       NotFoundException,
     );
+  });
+
+  it('403 si un technicien non assigne tente de consulter la photo', async () => {
+    const { service } = build({
+      intervention: { id: 'i1', technicienId: 't1' },
+      photo: { id: 'p1', interventionId: 'i1', cheminFichier: 'i1/abc.png' },
+    });
+    await expect(
+      service.servir('p1', technicien('autre')),
+    ).rejects.toBeInstanceOf(ForbiddenException);
+  });
+
+  it('autorise le technicien assigne a consulter la photo', async () => {
+    const { service } = build({
+      intervention: { id: 'i1', technicienId: 't1' },
+      photo: { id: 'p1', interventionId: 'i1', cheminFichier: 'i1/abc.png' },
+    });
+    const f = await service.servir('p1', technicien('t1'));
+    expect(f.buffer.toString()).toBe('contenu image');
   });
 });

@@ -246,6 +246,23 @@ Avant de préparer le déploiement (GitHub, hébergement gratuit), Cédric a rep
 
 **Note pour la suite** : les mockups statiques (`http/`, pas concerné — voir plus haut) n'existent pas côté backend, contrairement à `web/design/*.html` et `mobile/design/*.html` qui mentionnent encore l'ancien nom (maquettes historiques, non servies par l'app, notées en dette technique dans les architecture.md de ces deux dépôts plutôt que corrigées ici).
 
+### Audit de sécurité avant déploiement public (2026-09-18)
+Cédric a demandé un audit de sécurité avant de finaliser le plan de déploiement (l'API va devenir accessible publiquement, pas seulement en LAN/dev). Fait en lecture directe du code (l'agent QA sous-traitant a échoué sur une limite de session Claude, sans rapport avec le code), périmètre : auth/guards, validation des DTO, upload/service de photos, secrets, `npm audit`.
+
+**Corrigé immédiatement** (les deux findings jugés bloquants avant mise en public) :
+- **`multer` 2.2.0 → 2.4.0** (`npm audit fix`, non cassant) : 3 CVE Denial of Service (dont 2 en CVSS 7.5) sur le parsing multipart, dépendance de production directe (`@nestjs/platform-express`) exposée sur l'endpoint public d'upload de photos.
+- **IDOR sur `GET /photos/:id`** (`photos-fichier.controller.ts`) : aucun contrôle d'appartenance n'existait — n'importe quel compte authentifié pouvait récupérer n'importe quelle photo en connaissant son UUID, y compris d'une intervention non attribuée. Corrigé sur le même principe que `PhotosService.ajouter()` (déjà correct) : `PhotosService.servir()` reçoit désormais le `JwtPayload` et vérifie `intervention.technicienId === utilisateur.sub` pour un `TECHNICIEN` (le `DIRECTEUR` n'est jamais restreint, comme partout ailleurs dans ce module). Le contrôleur transmet `@CurrentUser()`. 2 nouveaux tests unitaires (`photos.service.spec.ts`, fail-then-pass) et 1 nouveau test e2e combinant 403 (non assigné) puis 200 (assigné) sur la même photo — attention portée à la limite `MAX_PAR_CATEGORIE = 2` déjà atteinte par les tests précédents dans la même suite, pour ne pas déclencher un 409 involontaire.
+
+**Noté pour un ticket séparé, pas bloquant** :
+- Aucun rate limiting (`@nestjs/throttler` absent) — `POST /auth/login` bruteforçable sans limite.
+- Pas de `helmet` (en-têtes de sécurité HTTP), impact limité pour une API JSON pure.
+- Un compte désactivé garde un JWT valide jusqu'à 30 jours sur toutes les routes sauf `/auth/moi` (déjà documenté comme compromis accepté, US4.9 ci-dessus) — reconfirmé avec Cédric plutôt que retraité, le risque change en passant du LAN au public.
+- La validation « magic number » du type de fichier (`file-type`, présent dans l'arbre de dépendances) n'a pas été vérifiée avec certitude au runtime — à tester concrètement (upload d'un fichier renommé avec une extension usurpée) avant de la considérer robuste.
+
+**Déjà solide, vérifié et non modifié** : guards globaux JWT + rôles (deny-by-default sur `interventions`/`utilisateurs`, `@Roles('DIRECTEUR')` au niveau contrôleur), aucun secret en dur, `JWT_SECRET` sans fallback faible (`getOrThrow`), aucune requête SQL brute (tout passe par Prisma), `HttpExceptionFilter` ne fuit jamais de stack trace au client, CORS en liste blanche sans `credentials`. Le reste des vulnérabilités `npm audit` (`@usebruno/cli`, `prisma` CLI, `@faker-js/faker`, `undici` via `@nestjs/mau`) sont uniquement des dépendances de **dev**, jamais exécutées en production — non corrigées volontairement (`--force` aurait cassé des outils de dev pour zéro bénéfice réel).
+
+94 tests unitaires (2 nouveaux) + 115 tests e2e (2 nouveaux) verts, `npm audit` : 0 critique, 0 haute severity sur les dépendances de production.
+
 ### Configuration (`.env`)
 `DATABASE_URL`, `JWT_SECRET`, `PHOTOS_DIR`, `PORT`. Aucune de ces valeurs en dur dans le code. `.env.example` versionné, `.env` non versionné.
 

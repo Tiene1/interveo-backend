@@ -81,10 +81,21 @@ export class PhotosService {
     return this.repo.create({ interventionId, categorie, cheminFichier });
   }
 
-  async servir(id: string): Promise<FichierPhoto> {
+  async servir(id: string, utilisateur: JwtPayload): Promise<FichierPhoto> {
     const photo = await this.repo.findById(id);
     if (!photo) {
       throw new NotFoundException('Photo introuvable');
+    }
+
+    if (utilisateur.role === 'TECHNICIEN') {
+      const intervention = await this.repo.interventionResume(
+        photo.interventionId,
+      );
+      if (!intervention || intervention.technicienId !== utilisateur.sub) {
+        throw new ForbiddenException(
+          "Cette intervention n'est pas attribuee a ce technicien",
+        );
+      }
     }
 
     let buffer: Buffer;
