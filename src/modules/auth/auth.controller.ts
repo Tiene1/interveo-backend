@@ -6,6 +6,7 @@ import {
   HttpStatus,
   Patch,
   Post,
+  UseGuards,
 } from '@nestjs/common';
 import { ApiBearerAuth, ApiTags } from '@nestjs/swagger';
 import { AuthService } from './auth.service.js';
@@ -18,6 +19,7 @@ import { LoginDto } from './dto/login.dto.js';
 import { ChangerMotDePasseDto } from './dto/changer-mot-de-passe.dto.js';
 import { Public } from './decorators/public.decorator.js';
 import { CurrentUser } from './decorators/current-user.decorator.js';
+import { ClientIpThrottlerGuard } from '../../common/throttle/client-ip-throttler.guard.js';
 
 @ApiTags('Authentification')
 @Controller('auth')
@@ -25,6 +27,7 @@ export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
   @Public()
+  @UseGuards(ClientIpThrottlerGuard)
   @Post('login')
   @HttpCode(HttpStatus.OK)
   login(@Body() dto: LoginDto): Promise<LoginResult> {
@@ -32,6 +35,7 @@ export class AuthController {
   }
 
   @ApiBearerAuth('jwt')
+  @UseGuards(ClientIpThrottlerGuard)
   @Patch('mot-de-passe')
   @HttpCode(HttpStatus.NO_CONTENT)
   changerMotDePasse(

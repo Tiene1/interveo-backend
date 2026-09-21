@@ -19,5 +19,8 @@ export default defineConfig({
     isolate: false,
     hookTimeout: 30000,
     testTimeout: 15000,
+    // Les suites se connectent beaucoup depuis la meme IP : limite de debit de
+    // POST /auth/login relevee, sauf dans rate-limit.e2e-spec.ts qui la teste.
+    env: { LOGIN_RATE_LIMIT_PER_MINUTE: '1000' },
   },
 });
