@@ -1,4 +1,4 @@
-import { UnauthorizedException } from '@nestjs/common';
+import { BadRequestException, UnauthorizedException } from '@nestjs/common';
 
 vi.mock('argon2', () => ({
   verify: vi.fn(),
@@ -27,6 +27,7 @@ function build(compte: unknown = compteActif) {
   const utilisateurs = {
     findByIdentifiant: vi.fn().mockResolvedValue(compte),
     findById: vi.fn().mockResolvedValue(compte),
+    mettreAJourMotDePasse: vi.fn().mockResolvedValue(undefined),
   } as unknown as UtilisateursService;
   const jwt = {
     signAsync: vi.fn().mockResolvedValue('TOKEN'),
@@ -75,6 +76,67 @@ describe('AuthService.login', () => {
     await expect(
       service.login({ identifiant: 'kouassi', motDePasse: 'faux' }),
     ).rejects.toBeInstanceOf(UnauthorizedException);
+  });
+});
+
+describe('AuthService.changerMotDePasse', () => {
+  const dto = {
+    motDePasseActuel: 'Ancien!123',
+    nouveauMotDePasse: 'Nouveau!456',
+  };
+
+  beforeEach(() => {
+    verifyMock.mockReset();
+  });
+
+  it('met a jour le mot de passe quand l ancien est correct', async () => {
+    verifyMock.mockResolvedValue(true);
+    const { service, utilisateurs } = build();
+
+    await expect(service.changerMotDePasse('u1', dto)).resolves.toBeUndefined();
+
+    expect(verifyMock).toHaveBeenCalledWith('HASH', 'Ancien!123');
+    expect(utilisateurs.mettreAJourMotDePasse).toHaveBeenCalledWith(
+      'u1',
+      'Nouveau!456',
+    );
+  });
+
+  it('400 si le mot de passe actuel est faux, sans rien modifier', async () => {
+    verifyMock.mockResolvedValue(false);
+    const { service, utilisateurs } = build();
+
+    await expect(service.changerMotDePasse('u1', dto)).rejects.toBeInstanceOf(
+      BadRequestException,
+    );
+    expect(utilisateurs.mettreAJourMotDePasse).not.toHaveBeenCalled();
+  });
+
+  it('400 si le nouveau mot de passe est identique a l actuel', async () => {
+    verifyMock.mockResolvedValue(true);
+    const { service, utilisateurs } = build();
+
+    await expect(
+      service.changerMotDePasse('u1', {
+        motDePasseActuel: 'Meme!1234',
+        nouveauMotDePasse: 'Meme!1234',
+      }),
+    ).rejects.toBeInstanceOf(BadRequestException);
+    expect(utilisateurs.mettreAJourMotDePasse).not.toHaveBeenCalled();
+  });
+
+  it('401 si le compte n existe plus', async () => {
+    const { service } = build(null);
+    await expect(service.changerMotDePasse('u1', dto)).rejects.toBeInstanceOf(
+      UnauthorizedException,
+    );
+  });
+
+  it('401 si le compte est desactive', async () => {
+    const { service } = build({ ...compteActif, actif: false });
+    await expect(service.changerMotDePasse('u1', dto)).rejects.toBeInstanceOf(
+      UnauthorizedException,
+    );
   });
 });
 

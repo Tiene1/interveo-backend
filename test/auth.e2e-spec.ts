@@ -64,6 +64,81 @@ describe('Auth (e2e)', () => {
     return request(app.getHttpServer()).get('/auth/moi').expect(401);
   });
 
+  describe('PATCH /auth/mot-de-passe', () => {
+    const identifiant = `e2e-mdp-${Date.now()}`;
+    const ancien = 'Ancien!12345';
+    const nouveau = 'Nouveau!67890';
+    let tokenDirecteur: string;
+    let idCompte: string;
+    let tokenCompte: string;
+
+    const login = (motDePasse: string) =>
+      request(app.getHttpServer())
+        .post('/auth/login')
+        .send({ identifiant, motDePasse });
+
+    beforeAll(async () => {
+      const dir = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({ identifiant: 'kouassi', motDePasse: 'directeur123' });
+      tokenDirecteur = dir.body.accessToken;
+
+      const creation = await request(app.getHttpServer())
+        .post('/utilisateurs')
+        .set('Authorization', `Bearer ${tokenDirecteur}`)
+        .send({ nom: 'Compte E2E Mot De Passe', identifiant, motDePasse: ancien })
+        .expect(201);
+      idCompte = creation.body.id;
+
+      tokenCompte = (await login(ancien).expect(200)).body.accessToken;
+    });
+
+    afterAll(async () => {
+      await request(app.getHttpServer())
+        .patch(`/utilisateurs/${idCompte}/desactiver`)
+        .set('Authorization', `Bearer ${tokenDirecteur}`);
+      await request(app.getHttpServer())
+        .delete(`/utilisateurs/${idCompte}`)
+        .set('Authorization', `Bearer ${tokenDirecteur}`);
+    });
+
+    const patch = (corps: object, token = tokenCompte) =>
+      request(app.getHttpServer())
+        .patch('/auth/mot-de-passe')
+        .set('Authorization', `Bearer ${token}`)
+        .send(corps);
+
+    it('sans jeton renvoie 401', () => {
+      return request(app.getHttpServer())
+        .patch('/auth/mot-de-passe')
+        .send({ motDePasseActuel: ancien, nouveauMotDePasse: nouveau })
+        .expect(401);
+    });
+
+    it('mot de passe actuel faux renvoie 400 et ne change rien', async () => {
+      await patch({ motDePasseActuel: 'Faux!12345', nouveauMotDePasse: nouveau })
+        .expect(400)
+        .expect((res) => {
+          expect(res.body.message).toBe('Mot de passe actuel incorrect');
+        });
+      await login(ancien).expect(200);
+    });
+
+    it('nouveau mot de passe trop faible renvoie 400', () => {
+      return patch({ motDePasseActuel: ancien, nouveauMotDePasse: 'faible' }).expect(400);
+    });
+
+    it('nouveau mot de passe identique a l actuel renvoie 400', () => {
+      return patch({ motDePasseActuel: ancien, nouveauMotDePasse: ancien }).expect(400);
+    });
+
+    it('succes : 204, le nouveau mot de passe fonctionne, l ancien plus', async () => {
+      await patch({ motDePasseActuel: ancien, nouveauMotDePasse: nouveau }).expect(204);
+      await login(nouveau).expect(200);
+      await login(ancien).expect(401);
+    });
+  });
+
   it('GET /auth/moi avec un jeton valide renvoie le profil', async () => {
     const login = await request(app.getHttpServer())
       .post('/auth/login')

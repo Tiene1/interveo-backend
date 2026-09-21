@@ -46,6 +46,35 @@
         ]
       }
     },
+    "/auth/mot-de-passe": {
+      "patch": {
+        "operationId": "AuthController_changerMotDePasse",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangerMotDePasseDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "204": {
+            "description": ""
+          }
+        },
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "tags": [
+          "Authentification"
+        ]
+      }
+    },
     "/auth/moi": {
       "get": {
         "operationId": "AuthController_moi",
@@ -819,6 +848,23 @@
         "required": [
           "identifiant",
           "motDePasse"
+        ]
+      },
+      "ChangerMotDePasseDto": {
+        "type": "object",
+        "properties": {
+          "motDePasseActuel": {
+            "type": "string"
+          },
+          "nouveauMotDePasse": {
+            "type": "string",
+            "minLength": 8,
+            "pattern": "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[^\\da-zA-Z]).+$"
+          }
+        },
+        "required": [
+          "motDePasseActuel",
+          "nouveauMotDePasse"
         ]
       },
       "CreateUtilisateurDto": {

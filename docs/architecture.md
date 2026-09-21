@@ -270,6 +270,14 @@ La base de production (projet Supabase `interveo`) a été initialisée via le c
 
 **Conséquence à connaître** : ces migrations sont enregistrées dans la table de suivi de Supabase, pas dans `_prisma_migrations`. Si `prisma migrate deploy` est un jour lancé contre cette base, Prisma tentera de rejouer `init` et échouera (« schema not empty », P3005). Il faudra d'abord une baseline unique : `npx prisma migrate resolve --applied 20260902114706_init` puis `--applied 20260921133000_enable_rls_public_tables`. Le démarrage Render ne doit donc **pas** exécuter `migrate deploy` automatiquement tant que cette baseline n'est pas faite.
 
+### Changement de mot de passe en libre-service — `PATCH /auth/mot-de-passe` (2026-09-21)
+Retour de Cédric : le directeur ne pouvait pas changer son propre mot de passe (seul un technicien pouvait être réinitialisé, par le directeur, US4.9) — il fallait passer par un accès direct à la base à chaque changement. Nouvelle route dans `AuthController`, ouverte à **tout compte connecté** (pas de `@Roles`), corps `{ motDePasseActuel, nouveauMotDePasse }` (`ChangerMotDePasseDto`, même regex de complexité que `CreateUtilisateurDto`), `204 No Content` en succès.
+
+- **`AuthService.changerMotDePasse()`** : recharge le compte (401 s'il n'existe plus ou est désactivé), vérifie l'ancien mot de passe avec `argon2.verify`, refuse un nouveau mot de passe identique à l'ancien, puis délègue à `UtilisateursService.mettreAJourMotDePasse()` (hachage `argon2` + `updateMotDePasseHash`).
+- **Mauvais mot de passe actuel = 400, pas 401** : le client web purge le jeton (donc déconnecte l'utilisateur) sur tout 401 (`lib/api/client.ts`) ; une simple faute de frappe dans ce formulaire ne doit pas déconnecter. Constaté en test réel dans le navigateur.
+- **Limites connues, pas des oublis** : (1) les jetons JWT déjà émis restent valides jusqu'à leur expiration après un changement de mot de passe (même compromis JWT sans état que US4.7/US4.9) ; (2) aucun rate limiting sur cette route (cf. audit de sécurité ci-dessus) ; (3) **ce n'est pas une récupération de mot de passe oublié** : il faut connaître l'ancien. Un vrai « mot de passe oublié » exige un canal de contact (email/SMS), exclu du périmètre (cf. `CLAUDE.md`). En attendant, un directeur qui a perdu son mot de passe doit être réinitialisé directement en base.
+- Tests : 5 tests unitaires (`auth.service.spec.ts`) et 5 e2e (`auth.e2e-spec.ts`, avec un compte technicien jetable créé puis supprimé pour ne pas toucher aux comptes du seed). `openapi.json` régénéré. 99 tests unitaires et 120 e2e verts, `npm run build` propre.
+
 ### Configuration (`.env`)
 `DATABASE_URL`, `JWT_SECRET`, `PHOTOS_DIR`, `PORT`. Aucune de ces valeurs en dur dans le code. `.env.example` versionné, `.env` non versionné.
 

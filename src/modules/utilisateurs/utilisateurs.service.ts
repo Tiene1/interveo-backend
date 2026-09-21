@@ -63,6 +63,12 @@ export class UtilisateursService {
     return this.repo.updateMotDePasseHash(id, motDePasseHash);
   }
 
+  /** Changement en libre-service (AuthService.changerMotDePasse) : l'identite et l'ancien mot de passe sont verifies par l'appelant. */
+  async mettreAJourMotDePasse(id: string, motDePasse: string): Promise<void> {
+    const motDePasseHash = await argon2.hash(motDePasse);
+    await this.repo.updateMotDePasseHash(id, motDePasseHash);
+  }
+
   /** Reserve aux comptes TECHNICIEN. Idempotent, symetrique de desactiver(). */
   async reactiver(id: string): Promise<UtilisateurPublic> {
     await this.trouverTechnicienOuEchouer(id);
