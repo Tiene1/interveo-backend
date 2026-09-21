@@ -1,0 +1,80 @@
+name: CI
+
+# Verifie chaque push et chaque pull request : lint, build, tests unitaires et
+# tests e2e sur une vraie base PostgreSQL jetable. Ne deploie rien : Render
+# redeploie de son cote a chaque push sur `main` (cf. docs/architecture.md).
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  tests:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: postgres
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: interveo_ci
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U postgres"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    # Valeurs propres a la CI (base jetable, aucun secret reel).
+    env:
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/interveo_ci?schema=public
+      JWT_SECRET: ci-uniquement-valeur-de-test-sans-valeur-reelle-0123456789
+      PHOTOS_DIR: ./var/photos
+      CORS_ORIGIN: http://localhost:3001
+      SEED_DIRECTEUR_IDENTIFIANT: kouassi
+      SEED_DIRECTEUR_MOTDEPASSE: directeur123
+      SEED_TECHNICIEN_MOTDEPASSE: technicien123
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+
+      - name: Installer les dependances
+        run: npm ci
+
+      - name: Lint
+        run: npm run lint
+
+      - name: Build
+        run: npm run build
+
+      - name: Tests unitaires
+        run: npm test
+
+      - name: Preparer la base de test (migrations + comptes du seed)
+        run: |
+          npx prisma migrate deploy
+          npx prisma db seed
+
+      - name: Tests e2e
+        run: npm run test:e2e
+
+      # Seul le niveau critique fait echouer : 4 alertes "high" connues (chaine
+      # Prisma mysql2/deepmerge-ts, non atteignable a l'execution, cf.
+      # docs/architecture.md) sont acceptees.
+      - name: Audit des dependances de production
+        run: npm audit --omit=dev --audit-level=critical
