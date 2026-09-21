@@ -34,6 +34,13 @@ describe('AppController (e2e)', () => {
       .expect({ status: 'ok' });
   });
 
+  it('/health/db (GET) interroge la vraie base et reste public', () => {
+    return request(app.getHttpServer())
+      .get('/health/db')
+      .expect(200)
+      .expect({ status: 'ok', db: 'ok' });
+  });
+
   it('/route-inexistante (GET) renvoie l enveloppe d erreur uniforme', () => {
     return request(app.getHttpServer())
       .get('/route-inexistante')
