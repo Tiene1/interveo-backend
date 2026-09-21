@@ -1,5 +1,7 @@
 # API Interveo
 
+![CI](https://github.com/Tiene1/interveo-backend/actions/workflows/ci.yml/badge.svg)
+
 Backend de l'application de suivi d'interventions techniques pour PME du bâtiment (électricité, sécurité électronique, domotique, plomberie, climatisation...).
 
 - Stack : NestJS 12 (ESM) + Prisma + PostgreSQL.
