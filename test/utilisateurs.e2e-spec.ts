@@ -110,12 +110,14 @@ describe('Utilisateurs (e2e)', () => {
       });
   });
 
-  it('POST /utilisateurs renvoie 409 si l identifiant existe deja', () => {
-    return request(app.getHttpServer())
-      .post('/utilisateurs')
-      .set('Authorization', `Bearer ${tokenDirecteur}`)
-      .send({ nom: 'Doublon', identifiant: 'koffi', motDePasse: MOT_DE_PASSE_VALIDE })
-      .expect(409);
+  it('POST /utilisateurs renvoie 409 si l identifiant existe deja, meme avec une autre casse', async () => {
+    for (const identifiant of ['koffi', 'KOFFI', ' Koffi ']) {
+      await request(app.getHttpServer())
+        .post('/utilisateurs')
+        .set('Authorization', `Bearer ${tokenDirecteur}`)
+        .send({ nom: 'Doublon', identifiant, motDePasse: MOT_DE_PASSE_VALIDE })
+        .expect(409);
+    }
   });
 
   it('POST /utilisateurs renvoie 400 si le mot de passe fait moins de 8 caracteres', () => {

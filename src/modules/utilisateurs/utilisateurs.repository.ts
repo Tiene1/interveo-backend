@@ -30,8 +30,17 @@ const CHAMPS_PUBLICS = {
 export class UtilisateursRepository {
   constructor(private readonly prisma: PrismaService) {}
 
+  /**
+   * Insensible a la casse et aux espaces de bord : un clavier mobile met une
+   * majuscule au premier caractere ("Koffi" pour "koffi"), ce qui faisait
+   * echouer la connexion (constate le 2026-09-21). Sert aussi a detecter un
+   * doublon a la creation ("Awa" vs "awa"), l'index unique, lui, reste
+   * sensible a la casse.
+   */
   findByIdentifiant(identifiant: string): Promise<Utilisateur | null> {
-    return this.prisma.utilisateur.findUnique({ where: { identifiant } });
+    return this.prisma.utilisateur.findFirst({
+      where: { identifiant: { equals: identifiant.trim(), mode: 'insensitive' } },
+    });
   }
 
   findById(id: string): Promise<Utilisateur | null> {

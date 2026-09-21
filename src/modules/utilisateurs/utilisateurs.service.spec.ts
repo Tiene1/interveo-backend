@@ -69,6 +69,29 @@ describe('UtilisateursService.creer', () => {
     ).rejects.toThrow(ConflictException);
     expect(repo.create).not.toHaveBeenCalled();
   });
+
+  it('retire les espaces de bord de l identifiant avant de verifier et d enregistrer', async () => {
+    const repo = {
+      findByIdentifiant: vi.fn().mockResolvedValue(null),
+      create: vi.fn().mockImplementation((d) => Promise.resolve({ id: 'u1', ...d })),
+    } as unknown as UtilisateursRepository;
+    const service = new UtilisateursService(repo);
+
+    await service.creer({ nom: 'Awa', identifiant: '  awa2 ', motDePasse: 'motdepasse123' });
+
+    expect(repo.findByIdentifiant).toHaveBeenCalledWith('awa2');
+    expect(repo.create).toHaveBeenCalledWith(expect.objectContaining({ identifiant: 'awa2' }));
+  });
+
+  it('400 si l identifiant ne contient que des espaces', async () => {
+    const repo = { findByIdentifiant: vi.fn(), create: vi.fn() } as unknown as UtilisateursRepository;
+    const service = new UtilisateursService(repo);
+
+    await expect(
+      service.creer({ nom: 'Awa', identifiant: '   ', motDePasse: 'motdepasse123' }),
+    ).rejects.toThrow(BadRequestException);
+    expect(repo.create).not.toHaveBeenCalled();
+  });
 });
 
 describe('UtilisateursService.desactiver', () => {

@@ -42,6 +42,15 @@ describe('Auth (e2e)', () => {
       });
   });
 
+  it('POST /auth/login ignore la casse et les espaces de l identifiant (clavier mobile)', async () => {
+    for (const identifiant of ['Kouassi', 'KOUASSI', '  kouassi ']) {
+      await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({ identifiant, motDePasse: 'directeur123' })
+        .expect(200);
+    }
+  });
+
   it('POST /auth/login avec un mauvais mot de passe renvoie 401', () => {
     return request(app.getHttpServer())
       .post('/auth/login')

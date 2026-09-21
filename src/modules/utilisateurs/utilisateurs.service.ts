@@ -32,7 +32,11 @@ export class UtilisateursService {
 
   /** US4.5. Cree toujours un compte TECHNICIEN, actif par defaut. */
   async creer(dto: CreateUtilisateurDto): Promise<UtilisateurPublic> {
-    const existant = await this.repo.findByIdentifiant(dto.identifiant);
+    const identifiant = dto.identifiant.trim();
+    if (identifiant === '') {
+      throw new BadRequestException('identifiant ne doit pas etre vide');
+    }
+    const existant = await this.repo.findByIdentifiant(identifiant);
     if (existant) {
       throw new ConflictException('Cet identifiant est deja utilise');
     }
@@ -40,7 +44,7 @@ export class UtilisateursService {
     const motDePasseHash = await argon2.hash(dto.motDePasse);
     return this.repo.create({
       nom: dto.nom,
-      identifiant: dto.identifiant,
+      identifiant,
       motDePasseHash,
       role: 'TECHNICIEN',
       actif: true,
