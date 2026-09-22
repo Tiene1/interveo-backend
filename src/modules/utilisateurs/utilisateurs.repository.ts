@@ -84,6 +84,14 @@ export class UtilisateursRepository {
     });
   }
 
+  updateNom(id: string, nom: string): Promise<UtilisateurPublic> {
+    return this.prisma.utilisateur.update({
+      where: { id },
+      data: { nom },
+      select: CHAMPS_PUBLICS,
+    });
+  }
+
   /** Toutes interventions confondues (statut indifferent) : sert de garde-fou avant suppression. */
   compterInterventionsAttribuees(technicienId: string): Promise<number> {
     return this.prisma.intervention.count({ where: { technicienId } });

@@ -15,6 +15,21 @@
         ]
       }
     },
+    "/health/db": {
+      "get": {
+        "operationId": "AppController_healthDb",
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": ""
+          }
+        },
+        "summary": "Sonde pour le ping externe (cron-job.org, cf. docs/architecture.md) :\nmaintient l'instance Render eveillee ET la base Supabase active (le projet\ngratuit est mis en pause apres environ une semaine sans activite), ce que\n`/health` seul ne fait pas puisqu'il ne touche pas la base. Renvoie 503 si\nla base est injoignable, pour que le service de ping puisse alerter. Le\nresultat est mis en cache 20 s, succes comme echec.",
+        "tags": [
+          "Sante"
+        ]
+      }
+    },
     "/auth/login": {
       "post": {
         "operationId": "AuthController_login",
@@ -63,6 +78,42 @@
         "responses": {
           "204": {
             "description": ""
+          }
+        },
+        "security": [
+          {
+            "jwt": []
+          }
+        ],
+        "tags": [
+          "Authentification"
+        ]
+      }
+    },
+    "/auth/nom": {
+      "patch": {
+        "operationId": "AuthController_changerNom",
+        "parameters": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangerNomDto"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object"
+                }
+              }
+            }
           }
         },
         "security": [
@@ -865,6 +916,18 @@
         "required": [
           "motDePasseActuel",
           "nouveauMotDePasse"
+        ]
+      },
+      "ChangerNomDto": {
+        "type": "object",
+        "properties": {
+          "nom": {
+            "type": "string",
+            "maxLength": 100
+          }
+        },
+        "required": [
+          "nom"
         ]
       },
       "CreateUtilisateurDto": {

@@ -17,6 +17,7 @@ import type {
 } from './auth.service.js';
 import { LoginDto } from './dto/login.dto.js';
 import { ChangerMotDePasseDto } from './dto/changer-mot-de-passe.dto.js';
+import { ChangerNomDto } from './dto/changer-nom.dto.js';
 import { Public } from './decorators/public.decorator.js';
 import { CurrentUser } from './decorators/current-user.decorator.js';
 import { ClientIpThrottlerGuard } from '../../common/throttle/client-ip-throttler.guard.js';
@@ -43,6 +44,15 @@ export class AuthController {
     @CurrentUser() user: JwtPayload,
   ): Promise<void> {
     return this.authService.changerMotDePasse(user.sub, dto);
+  }
+
+  @ApiBearerAuth('jwt')
+  @Patch('nom')
+  changerNom(
+    @Body() dto: ChangerNomDto,
+    @CurrentUser() user: JwtPayload,
+  ): Promise<ProfilUtilisateur> {
+    return this.authService.changerNom(user.sub, dto);
   }
 
   @ApiBearerAuth('jwt')

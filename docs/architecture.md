@@ -324,6 +324,14 @@ Constaté en usage réel : le back-office ne chargeait plus les techniciens et l
 - **La CI ne déploie rien et ne bloque rien par elle-même** : Render redéploie à chaque push sur `main` (`autoDeployTrigger: commit`), que la CI soit verte ou rouge. Pour en faire une vraie barrière : dashboard Render → `interveo-api` → Settings → Build & Deploy → Auto-Deploy → **« After CI Checks Pass »** (non réglable par le connecteur MCP).
 - Le workflow n'a été poussé que sur `develop` pour le tester sans déclencher de déploiement ; il arrive sur `main` au prochain push de code.
 
+### Changement du nom affiché en libre-service — `PATCH /auth/nom` (2026-09-22)
+Retour de Cédric : le compte directeur (`kouassi`) n'est pas forcément tenu par la même personne dans la durée, il fallait pouvoir changer le nom affiché sans passer par la base. Même principe que `PATCH /auth/mot-de-passe` (ticket précédent) : route en libre-service, ouverte à **tout compte connecté**, pas réservée au directeur — un technicien pourrait un jour vouloir corriger l'orthographe de son propre nom sans passer par le directeur.
+
+- **`AuthService.changerNom()`** : recharge le compte (401 s'il n'existe plus ou est désactivé), retire les espaces de bord, refuse un nom vide (400), délègue à `UtilisateursService.mettreAJourNom()` → `UtilisateursRepository.updateNom()`.
+- **Pas de vérification du mot de passe actuel**, à la différence du changement de mot de passe : le nom affiché n'est pas un champ de sécurité, l'exiger aurait juste ajouté de la friction sans bénéfice.
+- **Renvoie `200` avec le profil à jour** (`ProfilUtilisateur`), contrairement à `PATCH /auth/mot-de-passe` (`204`) : ici le corps de réponse a un usage réel côté client (mettre à jour l'affichage — la salutation « Bonjour, {nom} » côté web — sans attendre un prochain `GET /auth/moi`).
+- Tests : 5 unitaires (`auth.service.spec.ts`), 3 e2e (`auth.e2e-spec.ts`, compte technicien jetable, vérifie aussi que `GET /auth/moi` reflète le changement ensuite). `openapi.json` régénéré. 128 tests unitaires et 128 e2e verts.
+
 ### Configuration (`.env`)
 `DATABASE_URL`, `JWT_SECRET`, `PHOTOS_DIR`, `PORT`. Aucune de ces valeurs en dur dans le code. `.env.example` versionné, `.env` non versionné.
 

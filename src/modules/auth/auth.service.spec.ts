@@ -28,6 +28,9 @@ function build(compte: unknown = compteActif) {
     findByIdentifiant: vi.fn().mockResolvedValue(compte),
     findById: vi.fn().mockResolvedValue(compte),
     mettreAJourMotDePasse: vi.fn().mockResolvedValue(undefined),
+    mettreAJourNom: vi.fn().mockImplementation((id: string, nom: string) =>
+      Promise.resolve({ ...compteActif, id, nom }),
+    ),
   } as unknown as UtilisateursService;
   const jwt = {
     signAsync: vi.fn().mockResolvedValue('TOKEN'),
@@ -137,6 +140,53 @@ describe('AuthService.changerMotDePasse', () => {
     await expect(service.changerMotDePasse('u1', dto)).rejects.toBeInstanceOf(
       UnauthorizedException,
     );
+  });
+});
+
+describe('AuthService.changerNom', () => {
+  it('met a jour le nom et renvoie le profil a jour', async () => {
+    const { service, utilisateurs } = build();
+
+    const resultat = await service.changerNom('u1', { nom: 'Nouveau Nom' });
+
+    expect(utilisateurs.mettreAJourNom).toHaveBeenCalledWith('u1', 'Nouveau Nom');
+    expect(resultat).toEqual({
+      id: 'u1',
+      nom: 'Nouveau Nom',
+      identifiant: 'kouassi',
+      role: 'DIRECTEUR',
+    });
+  });
+
+  it('retire les espaces de bord', async () => {
+    const { service, utilisateurs } = build();
+
+    await service.changerNom('u1', { nom: '  Nouveau Nom  ' });
+
+    expect(utilisateurs.mettreAJourNom).toHaveBeenCalledWith('u1', 'Nouveau Nom');
+  });
+
+  it('400 si le nom ne contient que des espaces', async () => {
+    const { service, utilisateurs } = build();
+
+    await expect(service.changerNom('u1', { nom: '   ' })).rejects.toBeInstanceOf(
+      BadRequestException,
+    );
+    expect(utilisateurs.mettreAJourNom).not.toHaveBeenCalled();
+  });
+
+  it('401 si le compte n existe plus', async () => {
+    const { service } = build(null);
+    await expect(
+      service.changerNom('u1', { nom: 'Nouveau Nom' }),
+    ).rejects.toBeInstanceOf(UnauthorizedException);
+  });
+
+  it('401 si le compte est desactive', async () => {
+    const { service } = build({ ...compteActif, actif: false });
+    await expect(
+      service.changerNom('u1', { nom: 'Nouveau Nom' }),
+    ).rejects.toBeInstanceOf(UnauthorizedException);
   });
 });
 

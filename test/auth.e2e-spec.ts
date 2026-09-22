@@ -148,6 +148,81 @@ describe('Auth (e2e)', () => {
     });
   });
 
+  describe('PATCH /auth/nom', () => {
+    const identifiant = `e2e-nom-${Date.now()}`;
+    let tokenDirecteur: string;
+    let idCompte: string;
+    let tokenCompte: string;
+
+    beforeAll(async () => {
+      const dir = await request(app.getHttpServer())
+        .post('/auth/login')
+        .send({ identifiant: 'kouassi', motDePasse: 'directeur123' });
+      tokenDirecteur = dir.body.accessToken;
+
+      const creation = await request(app.getHttpServer())
+        .post('/utilisateurs')
+        .set('Authorization', `Bearer ${tokenDirecteur}`)
+        .send({ nom: 'Compte E2E Nom', identifiant, motDePasse: 'Ancien!12345' })
+        .expect(201);
+      idCompte = creation.body.id;
+
+      tokenCompte = (
+        await request(app.getHttpServer())
+          .post('/auth/login')
+          .send({ identifiant, motDePasse: 'Ancien!12345' })
+          .expect(200)
+      ).body.accessToken;
+    });
+
+    afterAll(async () => {
+      await request(app.getHttpServer())
+        .patch(`/utilisateurs/${idCompte}/desactiver`)
+        .set('Authorization', `Bearer ${tokenDirecteur}`);
+      await request(app.getHttpServer())
+        .delete(`/utilisateurs/${idCompte}`)
+        .set('Authorization', `Bearer ${tokenDirecteur}`);
+    });
+
+    const patchNom = (corps: object, token = tokenCompte) =>
+      request(app.getHttpServer())
+        .patch('/auth/nom')
+        .set('Authorization', `Bearer ${token}`)
+        .send(corps);
+
+    it('sans jeton renvoie 401', () => {
+      return request(app.getHttpServer())
+        .patch('/auth/nom')
+        .send({ nom: 'Nouveau Nom' })
+        .expect(401);
+    });
+
+    it('nom vide renvoie 400', () => {
+      return patchNom({ nom: '' }).expect(400);
+    });
+
+    it('succes : 200, renvoie le profil a jour, repris par GET /auth/moi ensuite', async () => {
+      await patchNom({ nom: 'Nouveau Nom' })
+        .expect(200)
+        .expect((res) => {
+          expect(res.body).toMatchObject({
+            id: idCompte,
+            nom: 'Nouveau Nom',
+            identifiant,
+            role: 'TECHNICIEN',
+          });
+        });
+
+      await request(app.getHttpServer())
+        .get('/auth/moi')
+        .set('Authorization', `Bearer ${tokenCompte}`)
+        .expect(200)
+        .expect((res) => {
+          expect(res.body.nom).toBe('Nouveau Nom');
+        });
+    });
+  });
+
   it('GET /auth/moi avec un jeton valide renvoie le profil', async () => {
     const login = await request(app.getHttpServer())
       .post('/auth/login')

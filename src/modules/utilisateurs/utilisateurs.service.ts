@@ -73,6 +73,17 @@ export class UtilisateursService {
     await this.repo.updateMotDePasseHash(id, motDePasseHash);
   }
 
+  /**
+   * Changement du nom affiche, en libre-service (AuthService.changerNom).
+   * Tout role, pas reserve au directeur : le compte "kouassi" n'est pas
+   * forcement tenu par la meme personne dans la duree (retour de Cedric le
+   * 2026-09-22), et un technicien pourrait un jour changer d'identite
+   * affichee sans que ce soit reserve au directeur.
+   */
+  mettreAJourNom(id: string, nom: string): Promise<UtilisateurPublic> {
+    return this.repo.updateNom(id, nom);
+  }
+
   /** Reserve aux comptes TECHNICIEN. Idempotent, symetrique de desactiver(). */
   async reactiver(id: string): Promise<UtilisateurPublic> {
     await this.trouverTechnicienOuEchouer(id);

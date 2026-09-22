@@ -8,6 +8,7 @@ import * as argon2 from 'argon2';
 import { UtilisateursService } from '../utilisateurs/utilisateurs.service.js';
 import { LoginDto } from './dto/login.dto.js';
 import { ChangerMotDePasseDto } from './dto/changer-mot-de-passe.dto.js';
+import { ChangerNomDto } from './dto/changer-nom.dto.js';
 import type { RoleUtilisateur } from '../../generated/prisma/client.js';
 
 export interface JwtPayload {
@@ -93,6 +94,33 @@ export class AuthService {
       userId,
       dto.nouveauMotDePasse,
     );
+  }
+
+  /**
+   * Libre-service, tout role : le compte "kouassi" (ou tout autre) n'est pas
+   * forcement tenu par la meme personne dans la duree (retour de Cedric le
+   * 2026-09-22 : "ce n'est pas forcement lui qui sera la tout le temps pour
+   * gerer l'app"). Pas de verification du mot de passe : contrairement au
+   * mot de passe, le nom affiche n'est pas un champ de securite.
+   */
+  async changerNom(userId: string, dto: ChangerNomDto): Promise<ProfilUtilisateur> {
+    const utilisateur = await this.utilisateurs.findById(userId);
+    if (!utilisateur || !utilisateur.actif) {
+      throw new UnauthorizedException('Compte introuvable ou desactive');
+    }
+
+    const nom = dto.nom.trim();
+    if (nom === '') {
+      throw new BadRequestException('nom ne doit pas etre vide');
+    }
+
+    const misAJour = await this.utilisateurs.mettreAJourNom(userId, nom);
+    return {
+      id: misAJour.id,
+      nom: misAJour.nom,
+      identifiant: misAJour.identifiant,
+      role: misAJour.role,
+    };
   }
 
   async moi(userId: string): Promise<ProfilUtilisateur> {
