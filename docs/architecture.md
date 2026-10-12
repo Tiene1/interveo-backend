@@ -340,6 +340,12 @@ Le diagramme C4 (niveaux 1 à 3 pour l'API, l'app mobile et le back-office web, 
 - **Page « Déploiement » redessinée** : le diagramme de conception montrait un VPS (Docker Compose, nginx, Let's Encrypt), jamais mis en place. Elle montre maintenant le téléphone (APK des Releases GitHub), le poste du directeur, Vercel (back-office statique), Render derrière Cloudflare (API), Supabase (PostgreSQL) et Cloudinary (photos).
 - Les autres pages ne changent que par ces libellés. Les modules et endpoints ajoutés après la conception (libre-service du mot de passe et du nom, exports) ne sont pas tous représentés : `architecture.md` reste la référence détaillée.
 
+### Diagramme C4 : libellés neutres, page « Déploiement » retirée (2026-10-12)
+Le diagramme `docs/interveo-c4.drawio` est présenté sur le portfolio à côté de démonstrations tournées en local. Pour qu'il ne contredise pas ces démonstrations, les noms d'hébergeurs en sont retirés (Render, Vercel, Supabase, Cloudinary, Cloudflare) et la page « Déploiement » (ajoutée le jour même, cf. entrée précédente) est supprimée : le diagramme passe de 6 à 5 pages et décrit l'architecture logicielle, pas un environnement d'hébergement.
+
+- Niveau 2 : la base est « PostgreSQL », le stockage des photos est « système de fichiers, implémentation par défaut » ; niveau 3 (API) : `shared` mentionne l'interface `StockageFichiers` et son implémentation système de fichiers.
+- Rien ne change dans le code ni dans les ADR. La production réelle (Render, Vercel, Supabase, Cloudinary derrière Cloudflare) reste documentée dans les entrées « Déploiement Render », « Base de production Supabase » et « Stockage des photos : implémentation Cloudinary » ci-dessus.
+
 ### Configuration (`.env`)
 `DATABASE_URL`, `JWT_SECRET`, `PHOTOS_DIR`, `PORT`. Aucune de ces valeurs en dur dans le code. `.env.example` versionné, `.env` non versionné.
 
