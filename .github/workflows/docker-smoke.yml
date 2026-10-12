@@ -1,0 +1,50 @@
+name: Docker smoke
+
+# Demarre vraiment `docker compose up` sur une machine GitHub et s'en sert
+# (scripts/docker-smoke.sh), avec les ports par defaut puis avec
+# API_PORT=3300 / WEB_PORT=3301.
+#
+# Declenche UNIQUEMENT sur la branche `docker-smoke` et a la main. Surtout pas
+# sur main ni develop : le service Render `interveo-api` se redeploie quand la
+# CI de main est verte (declencheur `checksPass`) ; un workflow en plus sur main
+# qui echouerait (reseau, Docker Hub, depot web) bloquerait les deploiements.
+on:
+  push:
+    branches: [docker-smoke]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: docker-smoke-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  smoke:
+    name: ${{ matrix.nom }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - nom: ports par defaut (3000 / 3001)
+            api_port: "3000"
+            web_port: "3001"
+          - nom: ports personnalises (3300 / 3301)
+            api_port: "3300"
+            web_port: "3301"
+
+    env:
+      API_PORT: ${{ matrix.api_port }}
+      WEB_PORT: ${{ matrix.web_port }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      # En cas d'echec, le script affiche `docker compose ps -a` et
+      # `docker compose logs` avant de tout nettoyer.
+      - name: Test de fumee de docker compose up
+        run: bash scripts/docker-smoke.sh
