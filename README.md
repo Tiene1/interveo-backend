@@ -29,3 +29,7 @@ npm run start:dev
 | `npm run test:e2e` | Tests end to end |
 | `npm run test:cov` | Couverture |
 | `npm run lint` | Lint (oxlint) |
+
+## Licence
+
+Licence MIT — voir [LICENSE](LICENSE).
