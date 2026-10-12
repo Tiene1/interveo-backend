@@ -1,0 +1,32 @@
+# Ne pas envoyer au demon Docker : dependances locales, sorties de build,
+# secrets et donnees de dev. Tout est reconstruit dans l'image.
+node_modules
+dist
+coverage
+var
+*.tsbuildinfo
+*.log
+
+# client Prisma genere : regenere dans l'image (npm ci -> postinstall)
+src/generated
+
+# environnement : jamais dans une image
+.env
+.env.*
+!.env.example
+
+.git
+.github
+.vscode
+.idea
+.claude
+
+# documentation et outils de dev qui ne servent pas a l'execution
+docs
+http
+openapi.json
+README.md
+CLAUDE.md
+docker-compose*.yml
+Dockerfile
+.dockerignore

@@ -1,0 +1,115 @@
+# Interveo en une commande : `docker compose up`
+#
+# Lance, dans des conteneurs separes (un par role, pas un conteneur geant) :
+#   db      PostgreSQL, sans port publie sur la machine
+#   migrate etape unique : `prisma migrate deploy` puis `prisma db seed` (comptes de demo)
+#   api     l'API NestJS            -> http://localhost:${API_PORT:-3000}
+#   web     le back-office (nginx)  -> http://localhost:${WEB_PORT:-3001}
+#
+# Les donnees survivent a `docker compose down` (volumes nommes pgdata et photos) ;
+# `docker compose down -v` efface tout. Mode d'emploi complet : README.md.
+#
+# Ports : API_PORT (defaut 3000) et WEB_PORT (defaut 3001), en variable
+# d'environnement ou dans un fichier .env a cote de ce fichier. Si API_PORT
+# change, le web doit etre reconstruit (l'adresse de l'API est integree a son
+# build) : `docker compose up --build`.
+#
+# Ce fichier est un exemple de demonstration locale : les identifiants et le
+# secret ci-dessous ne doivent jamais servir ailleurs.
+
+name: interveo
+
+x-database-url: &database-url "postgresql://sim:sim@db:5432/sim_interventions?schema=public"
+
+services:
+  db:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_USER: sim
+      POSTGRES_PASSWORD: sim
+      POSTGRES_DB: sim_interventions
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U sim -d sim_interventions"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  migrate:
+    build:
+      context: .
+      target: migrate
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: "no"
+    environment:
+      DATABASE_URL: *database-url
+      # Comptes de demo (ceux de .env.example) : voir le README.
+      SEED_DIRECTEUR_IDENTIFIANT: kouassi
+      SEED_DIRECTEUR_MOTDEPASSE: directeur123
+      SEED_TECHNICIEN_MOTDEPASSE: technicien123
+
+  api:
+    build:
+      context: .
+      target: runtime
+    init: true
+    depends_on:
+      db:
+        condition: service_healthy
+      migrate:
+        condition: service_completed_successfully
+    environment:
+      PORT: "3000"
+      DATABASE_URL: *database-url
+      # LOCAL UNIQUEMENT : secret de demonstration, public puisque versionne.
+      # Ne jamais le reutiliser pour une vraie installation.
+      JWT_SECRET: "demo-local-uniquement-secret-public-ne-pas-reutiliser-0123456789"
+      # Origine du back-office ci-dessous : suit WEB_PORT.
+      CORS_ORIGIN: "http://localhost:${WEB_PORT:-3001}"
+      # Photos sur disque, dans le volume nomme `photos`.
+      STOCKAGE_PHOTOS: fs
+      PHOTOS_DIR: /data/photos
+      # Documentation interactive de l'API : http://localhost:${API_PORT:-3000}/docs
+      SWAGGER_ENABLED: "true"
+    ports:
+      - "${API_PORT:-3000}:3000"
+    volumes:
+      - photos:/data/photos
+    healthcheck:
+      test:
+        - CMD
+        - node
+        - -e
+        - "fetch('http://127.0.0.1:3000/health').then((r) => process.exit(r.ok ? 0 : 1)).catch(() => process.exit(1))"
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 10s
+
+  web:
+    build:
+      # Le back-office vit dans son propre depot : il est construit directement
+      # depuis GitHub, un seul clone suffit. WEB_SOURCE permet de pointer vers
+      # un dossier local (WEB_SOURCE=../web) ou une autre branche.
+      context: ${WEB_SOURCE:-https://github.com/Tiene1/interveo-web.git#main}
+      args:
+        # Integree au build (export statique) : doit rester joignable depuis le
+        # navigateur, donc `localhost` et le port publie de l'API.
+        NEXT_PUBLIC_API_URL: "http://localhost:${API_PORT:-3000}"
+    depends_on:
+      api:
+        condition: service_healthy
+    ports:
+      - "${WEB_PORT:-3001}:80"
+    healthcheck:
+      test: ["CMD", "wget", "-q", "--spider", "http://127.0.0.1/"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  pgdata:
+  photos:
