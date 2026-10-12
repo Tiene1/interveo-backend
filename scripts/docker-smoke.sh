@@ -146,8 +146,9 @@ attendre "$API/health"
 attendre "$WEB/"
 
 titre "2. Securite de la pile"
-[ -z "$(docker compose port db 5432 2>/dev/null || true)" ] ||
-  echec "le port 5432 de la base est publie sur la machine"
+liaisons="$(docker inspect --format '{{json .HostConfig.PortBindings}}' "$(docker compose ps -aq db)")"
+echo "$liaisons" | jq -e 'length == 0' >/dev/null ||
+  echec "la base publie un port sur la machine : $liaisons"
 ok "le port de la base n'est pas publie"
 uid="$(docker compose exec -T api id -u)"
 [ "$uid" != "0" ] || echec "l'API tourne en root (uid 0)"
