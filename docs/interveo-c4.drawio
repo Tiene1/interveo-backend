@@ -1,0 +1,382 @@
+<mxfile host="65bd71144e" pages="6">
+    <diagram name="C4 Level 1 - Contexte" id="c1_page">
+        <mxGraphModel dx="1100" dy="653" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1169" pageHeight="827" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="c1_titre" value="C4 Level 1 - Contexte : Interveo" style="text;html=1;fillColor=none;strokeColor=none;fontSize=18;fontStyle=1;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="120" width="1080" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="c1_directeur" value="Directeur&#xa;Responsable des interventions" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=none;" parent="1" vertex="1">
+                    <mxGeometry x="150" y="200" width="40" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="c1_tech" value="Technicien" style="shape=umlActor;verticalLabelPosition=bottom;verticalAlign=top;html=1;outlineConnect=0;fillColor=none;" parent="1" vertex="1">
+                    <mxGeometry x="150" y="470" width="40" height="80" as="geometry"/>
+                </mxCell>
+                <mxCell id="c1_sys" value="Interveo&#xa;&#xa;Enregistrement et suivi des interventions techniques d&#39;une PME du bâtiment" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;verticalAlign=middle;spacingLeft=12;spacingRight=12;fontSize=13;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="360" y="305" width="280" height="150" as="geometry"/>
+                </mxCell>
+                <mxCell id="c1_gmaps" value="Google Maps&#xa;&#xa;Système externe&#xa;Cartographie, ouvert par lien" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;dashed=1;verticalAlign=middle;fontSize=12;" parent="1" vertex="1">
+                    <mxGeometry x="930" y="325" width="190" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="c1_e1" value="Crée, attribue et suit les interventions" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=11;endArrow=block;" parent="1" source="c1_directeur" target="c1_sys" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="c1_e2" value="Consulte et complète ses interventions attribuées" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=11;endArrow=block;" parent="1" source="c1_tech" target="c1_sys" edge="1">
+                    <mxGeometry x="-0.1783" relative="1" as="geometry">
+                        <mxPoint x="1" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="c1_e3" value="Ouvre la localisation et l&#39;itinéraire" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=11;endArrow=block;" parent="1" source="c1_sys" target="c1_gmaps" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+    <diagram name="C4 Level 2 - Conteneurs" id="c2_page">
+        <mxGraphModel dx="770" dy="1257" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1300" pageHeight="800" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="c2_titre" value="C4 Level 2 - Conteneurs : Interveo" style="text;html=1;fillColor=none;strokeColor=none;fontSize=18;fontStyle=1;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="90" y="-97" width="1270" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="c2_mobile" value="App mobile technicien&#xa;Consulter et compléter les interventions sur le terrain&#xa;Flutter (Android), offline-first, base locale SQLite (Drift) · APK via les Releases GitHub" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;verticalAlign=middle;spacingLeft=8;spacingRight=8;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="555" y="-40" width="270" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="c2_bo" value="Back-office web&#xa;Créer, attribuer et consulter les interventions&#xa;Next.js 14 (export statique) · Vercel" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;verticalAlign=middle;spacingLeft=8;spacingRight=8;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="555" y="550" width="270" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="c2_api" value="API Interveo&#xa;Logique métier, authentification, synchronisation&#xa;NestJS (architecture en couches) · Render" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;verticalAlign=middle;spacingLeft=8;spacingRight=8;fontSize=11;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="540" y="250" width="300" height="140" as="geometry"/>
+                </mxCell>
+                <mxCell id="c2_db" value="Base de données&#xa;Comptes, interventions, métadonnées photos&#xa;PostgreSQL · Supabase" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=15;fillColor=none;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="1150" y="140" width="200" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="c2_photos" value="&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;&lt;div&gt;&lt;br&gt;&lt;/div&gt;Stockage des photos&lt;br&gt;Fichiers image avant et après&lt;br&gt;Cloudinary (système de fichiers en développement)" style="shape=folder;whiteSpace=wrap;html=1;fillColor=none;fontSize=10;verticalAlign=top;spacingTop=6;spacingLeft=6;spacingRight=6;" parent="1" vertex="1">
+                    <mxGeometry x="1150" y="360" width="210" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="c2_gmaps" value="Google Maps&#xa;Système externe&#xa;Cartographie et itinéraire, ouvert par lien" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;dashed=1;verticalAlign=middle;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="90" y="275" width="280" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="c2_ed1" value="HTTPS · REST / JSON (métier + synchro)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;endArrow=block;" parent="1" source="c2_mobile" target="c2_api" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="c2_ed2" value="HTTPS · REST / JSON" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;endArrow=block;" parent="1" source="c2_bo" target="c2_api" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="c2_ed3" value="Prisma ORM (SQL)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;endArrow=block;" parent="1" source="c2_api" target="c2_db" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="c2_ed4" value="Lit et écrit les fichiers (interface StockageFichiers)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;endArrow=block;" parent="1" source="c2_api" target="c2_photos" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="c2_ed5" value="Ouvre l&#39;itinéraire (lien)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;endArrow=block;dashed=1;" parent="1" source="c2_mobile" target="c2_gmaps" edge="1">
+                    <mxGeometry x="0.5652" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="c2_ed6" value="Ouvre la localisation (lien)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;endArrow=block;dashed=1;" parent="1" source="c2_bo" target="c2_gmaps" edge="1">
+                    <mxGeometry x="0.5614" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+    <diagram name="C4 Level 3 - Composants (API)" id="c3_page">
+        <mxGraphModel dx="2170" dy="1307" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1400" pageHeight="850" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="c3_titre" value="C4 Level 3 - Composants : conteneur API Interveo" style="text;html=1;fillColor=none;strokeColor=none;fontSize=18;fontStyle=1;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="-114" width="1000" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="c3_entree" value="Entrée : requêtes HTTP REST depuis les conteneurs [App mobile] et [Back-office web] du niveau 2" style="text;html=1;fillColor=none;strokeColor=none;fontSize=11;fontStyle=2;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="-78" width="1000" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="c3_auth" value="auth&#xa;Authentifie (JWT), applique le guard JWT et rôle (technicien / directeur) sur les routes de tous les modules" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;verticalAlign=middle;spacingLeft=8;spacingRight=8;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="370" y="-20" width="300" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="c3_interventions" value="interventions&#xa;Crée, attribue, annule, liste et filtre les interventions. Applique les transitions de statut PLANIFIEE vers REALISEE ou ANNULEE" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;verticalAlign=middle;spacingLeft=8;spacingRight=8;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="-180" y="170" width="260" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="c3_utilisateurs" value="utilisateurs&#xa;Liste les techniciens, gère leurs comptes (création, désactivation, mot de passe)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;verticalAlign=middle;spacingLeft=8;spacingRight=8;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="400" y="170" width="240" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="c3_photos" value="photos&#xa;Reçoit les photos, les associe à une intervention, les sert au back-office" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;verticalAlign=middle;spacingLeft=8;spacingRight=8;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="770" y="170" width="240" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="c3_sync" value="sync&#xa;Pull delta des interventions attribuées, push batch des clôtures depuis le mobile" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;verticalAlign=middle;spacingLeft=8;spacingRight=8;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="140" y="315" width="260" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="c3_shared" value="shared (infrastructure)&#xa;Accès PostgreSQL via Prisma. Interface StockageFichiers et ses implémentations (système de fichiers en développement, Cloudinary en production)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;verticalAlign=middle;spacingLeft=8;spacingRight=8;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="540" y="450" width="500" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="c3_common" value="common (transverse) : DTO de base, validation des entrées, filtre d&#39;exceptions, utilisé par tous les modules" style="text;html=1;fillColor=none;strokeColor=none;fontSize=10;fontStyle=2;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="340" y="750" width="900" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="c3_refdb" value="[PostgreSQL]&#xa;conteneur du niveau 2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;dashed=1;fontSize=10;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="540" y="657" width="190" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="c3_refphotos" value="[Stockage des photos]&#xa;conteneur du niveau 2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;dashed=1;fontSize=10;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="830" y="657" width="210" height="60" as="geometry"/>
+                </mxCell>
+                <mxCell id="c3_e1" value="Guard JWT et rôle sur les routes" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;endArrow=block;dashed=1;" parent="1" source="c3_auth" target="c3_interventions" edge="1">
+                    <mxGeometry x="0.6853" relative="1" as="geometry">
+                        <mxPoint y="-1" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="c3_e2" value="Récupère l&#39;utilisateur par identifiant (login)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;endArrow=block;" parent="1" source="c3_auth" target="c3_utilisateurs" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="c3_e3" value="Vérifie le technicien attribué" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;endArrow=block;" parent="1" source="c3_interventions" target="c3_utilisateurs" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="c3_e4" value="Lit et écrit les interventions à synchroniser" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;endArrow=block;" parent="1" source="c3_sync" target="c3_interventions" edge="1">
+                    <mxGeometry x="0.6428" relative="1" as="geometry">
+                        <mxPoint y="-1" as="offset"/>
+                        <Array as="points">
+                            <mxPoint x="0.08" y="370"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="c3_e5" value="Transmet les photos à enregistrer" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;endArrow=block;" parent="1" source="c3_sync" target="c3_photos" edge="1">
+                    <mxGeometry relative="1" as="geometry">
+                        <Array as="points">
+                            <mxPoint x="890" y="370.09"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="c3_e6" value="Lit et écrit (Prisma)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;endArrow=block;entryX=0;entryY=0.75;entryDx=0;entryDy=0;" parent="1" source="c3_interventions" target="c3_shared" edge="1">
+                    <mxGeometry x="0.3445" y="-2" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                        <Array as="points">
+                            <mxPoint x="-129.88" y="517.53"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="c3_e7" value="Lit et écrit (Prisma)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;endArrow=block;" parent="1" source="c3_utilisateurs" target="c3_shared" edge="1">
+                    <mxGeometry x="0.1818" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                        <Array as="points">
+                            <mxPoint x="520" y="480"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="c3_e8" value="Métadonnées (Prisma), fichier (StockageFichiers)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;endArrow=block;entryX=1;entryY=0.5;entryDx=0;entryDy=0;exitX=1;exitY=0.5;exitDx=0;exitDy=0;" parent="1" source="c3_photos" target="c3_shared" edge="1">
+                    <mxGeometry x="-0.1468" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                        <Array as="points">
+                            <mxPoint x="1100" y="224.94"/>
+                            <mxPoint x="1100" y="495.06"/>
+                        </Array>
+                        <mxPoint x="1070" y="280" as="sourcePoint"/>
+                        <mxPoint x="810" y="580" as="targetPoint"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="c3_e9" value="SQL" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;endArrow=block;dashed=1;" parent="1" source="c3_shared" target="c3_refdb" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="c3_e10" value="Fichiers image" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;endArrow=block;dashed=1;" parent="1" source="c3_shared" target="c3_refphotos" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+    <diagram name="C4 Level 3 - Composants (App mobile)" id="m3_page">
+        <mxGraphModel dx="2220" dy="457" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1450" pageHeight="800" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="m3_titre" value="C4 Level 3 - Composants : conteneur App mobile technicien (Flutter)" style="text;html=1;fillColor=none;strokeColor=none;fontSize=18;fontStyle=1;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="-60" width="1430" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="m3_entree" value="Entrée : actions du technicien sur les écrans, hors ligne comme en ligne" style="text;html=1;fillColor=none;strokeColor=none;fontSize=11;fontStyle=2;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="-60" y="36" width="1430" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="m3_auth" value="feature auth&#xa;Écran Connexion. Conserve le JWT en stockage sécurisé, garde la session au démarrage (US4.1, US4.2)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;verticalAlign=middle;spacingLeft=8;spacingRight=8;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="-60" y="110" width="270" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="m3_interventions" value="feature interventions&#xa;Écrans liste, détail, compléter, clôturer. Écrit la saisie au fil de l&#39;eau (US2.9), crée les photos avant et après" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;verticalAlign=middle;spacingLeft=8;spacingRight=8;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="-60" y="370" width="270" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="m3_state" value="core : state (Riverpod)&#xa;Providers exposant les interventions et leur statut à partir de la base locale, notifient les écrans" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;verticalAlign=middle;spacingLeft=8;spacingRight=8;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="470" y="280" width="250" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="m3_localdb" value="core : base locale&#xa;Drift (SQLite). Tables intervention et photo + champs de synchro (idServeur, statutSync, modifieLocalementLe)" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=14;fillColor=none;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="470" y="470" width="250" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="m3_sync" value="core : service de synchronisation&#xa;Détection de connectivité. Pull delta des interventions attribuées, push batch des clôtures, upload photos, applique confirmations et conflits" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;verticalAlign=middle;spacingLeft=8;spacingRight=8;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="450" y="670" width="290" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="m3_apiclient" value="core : client API&#xa;Client HTTP, ajoute le JWT à chaque requête. Utilisé par auth et par le service de synchronisation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;verticalAlign=middle;spacingLeft=8;spacingRight=8;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="710" y="110" width="290" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="m3_refapi" value="[API Interveo]&#xa;conteneur du niveau 2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;dashed=1;fontSize=10;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="1170" y="130" width="200" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="m3_refgmaps" value="[Google Maps]&#xa;conteneur du niveau 2, externe" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;dashed=1;fontSize=10;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="-40" y="600" width="230" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="m3_e1" value="Fournit et rafraîchit le JWT ; login et /moi" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;endArrow=block;" parent="1" source="m3_auth" target="m3_apiclient" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="m3_e2" value="Observe les interventions et leur statut" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;endArrow=block;" parent="1" source="m3_interventions" target="m3_state" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="m3_e3" value="Lit interventions et photos" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;endArrow=block;" parent="1" source="m3_state" target="m3_localdb" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="m3_e4" value="Écrit la saisie au fil de l&#39;eau, crée les photos" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;endArrow=block;" parent="1" source="m3_interventions" target="m3_localdb" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="m3_e5" value="Ouvre l&#39;itinéraire (lien profond)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;endArrow=block;dashed=1;" parent="1" source="m3_interventions" target="m3_refgmaps" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="m3_e6" value="Lit les LOCAL, marque ENVOYE puis CONFIRME" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;endArrow=block;" parent="1" source="m3_sync" target="m3_localdb" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="m3_e7" value="/sync (pull et push), upload photos" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;endArrow=block;" parent="1" source="m3_sync" target="m3_apiclient" edge="1">
+                    <mxGeometry x="0.2065" relative="1" as="geometry">
+                        <mxPoint as="offset"/>
+                        <Array as="points">
+                            <mxPoint x="855.09" y="735"/>
+                        </Array>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="m3_e8" value="HTTPS REST / JSON" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;endArrow=block;dashed=1;" parent="1" source="m3_apiclient" target="m3_refapi" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+    <diagram name="C4 Level 3 - Composants (Back-office web)" id="b3_page">
+        <mxGraphModel dx="770" dy="457" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1300" pageHeight="720" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="b3_titre" value="C4 Level 3 - Composants : conteneur Back-office web (Next.js)" style="text;html=1;fillColor=none;strokeColor=none;fontSize=18;fontStyle=1;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="100" y="30" width="1080" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="b3_entree" value="Entrée : navigation du directeur dans le navigateur, uniquement en ligne" style="text;html=1;fillColor=none;strokeColor=none;fontSize=11;fontStyle=2;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="100" y="66" width="940" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="b3_auth" value="feature auth&#xa;Écran Connexion. Conserve le JWT, redirige vers la connexion si la session est absente (US4.4)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;verticalAlign=middle;spacingLeft=8;spacingRight=8;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="100" y="120" width="270" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="b3_interventions" value="feature interventions&#xa;Écrans liste + filtres (client, technicien), création (client, lieu, date, technicien), détail (infos + photos avant et après + photo plein écran), annulation" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;verticalAlign=middle;spacingLeft=8;spacingRight=8;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="100" y="290" width="300" height="150" as="geometry"/>
+                </mxCell>
+                <mxCell id="b3_apiclient" value="core : client API (React Query)&#xa;Appelle l&#39;API, gère le cache des requêtes et les mutations, ajoute le JWT" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;verticalAlign=middle;spacingLeft=8;spacingRight=8;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="530" y="115" width="280" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="b3_ui" value="core : UI partagée&#xa;Tableau filtrable, formulaire, visionneuse de photo. Repère pour les évolutions du back-office" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;verticalAlign=middle;spacingLeft=8;spacingRight=8;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="530" y="470" width="280" height="110" as="geometry"/>
+                </mxCell>
+                <mxCell id="b3_refapi" value="[API Interveo]&#xa;conteneur du niveau 2" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;dashed=1;fontSize=10;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="960" y="140" width="220" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="b3_refgmaps" value="[Google Maps]&#xa;conteneur du niveau 2, externe" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;dashed=1;fontSize=10;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="130" y="560" width="240" height="70" as="geometry"/>
+                </mxCell>
+                <mxCell id="b3_e1" value="POST /auth/login" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;endArrow=block;" parent="1" source="b3_auth" target="b3_apiclient" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="b3_e2" value="/interventions, /utilisateurs, /photos/:id (GET, POST, PATCH)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;endArrow=block;" parent="1" source="b3_interventions" target="b3_apiclient" edge="1">
+                    <mxGeometry x="0.675" relative="1" as="geometry">
+                        <mxPoint y="1" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="b3_e3" value="Utilise (tableau, formulaire, visionneuse)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;endArrow=block;" parent="1" source="b3_interventions" target="b3_ui" edge="1">
+                    <mxGeometry x="0.7333" relative="1" as="geometry">
+                        <mxPoint y="1" as="offset"/>
+                    </mxGeometry>
+                </mxCell>
+                <mxCell id="b3_e4" value="HTTPS REST / JSON" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;endArrow=block;dashed=1;" parent="1" source="b3_apiclient" target="b3_refapi" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+                <mxCell id="b3_e5" value="Ouvre la localisation (lien)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;endArrow=block;dashed=1;" parent="1" source="b3_interventions" target="b3_refgmaps" edge="1">
+                    <mxGeometry relative="1" as="geometry"/>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+    <diagram name="Deploiement" id="d_page">
+        <mxGraphModel dx="1500" dy="800" grid="1" gridSize="10" guides="1" tooltips="1" connect="1" arrows="1" fold="1" page="1" pageScale="1" pageWidth="1700" pageHeight="900" math="0" shadow="0">
+            <root>
+                <mxCell id="0"/>
+                <mxCell id="1" parent="0"/>
+                <mxCell id="d_titre" value="Diagramme de déploiement : Interveo" style="text;html=1;fillColor=none;strokeColor=none;fontSize=18;fontStyle=1;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="-320" y="20" width="1680" height="30" as="geometry"/>
+                </mxCell>
+                <mxCell id="d_legende" value="Rectangle à angles droits = nœud d&#39;infrastructure ou service hébergé. Rectangle arrondi = instance logicielle. Cylindre = base. Dossier = stockage de fichiers. Pointillés = externe." style="text;html=1;fillColor=none;strokeColor=none;fontSize=10;fontStyle=2;align=center;verticalAlign=middle;" parent="1" vertex="1">
+                    <mxGeometry x="-320" y="52" width="1680" height="20" as="geometry"/>
+                </mxCell>
+                <mxCell id="d_phone" value="Téléphone Android du technicien" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;verticalAlign=top;align=left;fontStyle=1;spacingTop=6;spacingLeft=8;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="100" width="300" height="290" as="geometry"/>
+                </mxCell>
+                <mxCell id="d_appmobile" value="App mobile (APK)&#xa;Flutter, offline-first · installée depuis les Releases GitHub" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;verticalAlign=middle;fontSize=10;spacingLeft=6;spacingRight=6;" parent="1" vertex="1">
+                    <mxGeometry x="65" y="150" width="250" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="d_localdb" value="Base locale&#xa;SQLite (Drift)" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=12;fillColor=none;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="85" y="265" width="210" height="105" as="geometry"/>
+                </mxCell>
+                <mxCell id="d_browser" value="Poste du directeur (bureau) : navigateur" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;verticalAlign=top;align=left;fontStyle=1;spacingTop=6;spacingLeft=8;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="40" y="470" width="300" height="180" as="geometry"/>
+                </mxCell>
+                <mxCell id="d_spa" value="Back-office web&#xa;SPA Next.js, chargée depuis Vercel" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;verticalAlign=middle;fontSize=10;spacingLeft=6;spacingRight=6;" parent="1" vertex="1">
+                    <mxGeometry x="65" y="525" width="250" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="d_render" value="Render : service web, offre gratuite (Frankfurt)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;verticalAlign=top;align=left;fontStyle=1;spacingTop=6;spacingLeft=8;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="520" y="100" width="360" height="290" as="geometry"/>
+                </mxCell>
+                <mxCell id="d_api" value="API Interveo&#xa;NestJS (architecture en couches)&#xa;derrière Cloudflare" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;verticalAlign=middle;fontSize=10;spacingLeft=6;spacingRight=6;fontStyle=1;" parent="1" vertex="1">
+                    <mxGeometry x="545" y="165" width="310" height="130" as="geometry"/>
+                </mxCell>
+                <mxCell id="d_vercel" value="Vercel : hébergement du back-office (domaine personnalisé)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;verticalAlign=top;align=left;fontStyle=1;spacingTop=6;spacingLeft=8;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="520" y="470" width="360" height="180" as="geometry"/>
+                </mxCell>
+                <mxCell id="d_static" value="Back-office web&#xa;Build statique Next.js 14 (export)" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;verticalAlign=middle;fontSize=10;spacingLeft=6;spacingRight=6;" parent="1" vertex="1">
+                    <mxGeometry x="545" y="525" width="310" height="100" as="geometry"/>
+                </mxCell>
+                <mxCell id="d_supabase" value="Supabase : PostgreSQL géré (eu-central-1)" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;verticalAlign=top;align=left;fontStyle=1;spacingTop=6;spacingLeft=8;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="1060" y="100" width="300" height="190" as="geometry"/>
+                </mxCell>
+                <mxCell id="d_db" value="PostgreSQL&#xa;Schéma Prisma, Row Level Security" style="shape=cylinder3;whiteSpace=wrap;html=1;boundedLbl=1;backgroundOutline=1;size=14;fillColor=none;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="1085" y="150" width="250" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="d_cloudinary" value="Cloudinary : stockage des images" style="rounded=0;whiteSpace=wrap;html=1;fillColor=none;verticalAlign=top;align=left;fontStyle=1;spacingTop=6;spacingLeft=8;fontSize=11;" parent="1" vertex="1">
+                    <mxGeometry x="1060" y="330" width="300" height="190" as="geometry"/>
+                </mxCell>
+                <mxCell id="d_photos" value="&#xa;&#xa;Photos avant et après&#xa;Lecture par URL signée" style="shape=folder;whiteSpace=wrap;html=1;fillColor=none;fontSize=10;verticalAlign=top;spacingTop=6;spacingLeft=6;spacingRight=6;" parent="1" vertex="1">
+                    <mxGeometry x="1085" y="380" width="250" height="120" as="geometry"/>
+                </mxCell>
+                <mxCell id="d_gmaps" value="Google Maps&#xa;SaaS externe" style="rounded=1;whiteSpace=wrap;html=1;fillColor=none;dashed=1;verticalAlign=middle;fontSize=10;" parent="1" vertex="1">
+                    <mxGeometry x="-320" y="330" width="220" height="90" as="geometry"/>
+                </mxCell>
+                <mxCell id="d_e1" value="HTTPS 443&#xa;REST / JSON&#xa;4G ou Wi-Fi, intermittent" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;endArrow=block;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.3;entryDx=0;entryDy=0;" parent="1" source="d_appmobile" target="d_api" edge="1">
+                    <mxGeometry relative="1" as="geometry"></mxGeometry>
+                </mxCell>
+                <mxCell id="d_e2" value="HTTPS 443 · charge la SPA" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;endArrow=block;exitX=1;exitY=0.5;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="d_spa" target="d_static" edge="1">
+                    <mxGeometry relative="1" as="geometry"></mxGeometry>
+                </mxCell>
+                <mxCell id="d_e3" value="HTTPS 443 · REST / JSON" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;endArrow=block;exitX=0.5;exitY=1;exitDx=0;exitDy=0;entryX=0;entryY=0.8;entryDx=0;entryDy=0;" parent="1" source="d_spa" target="d_api" edge="1">
+                    <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="190" y="700"/><mxPoint x="450" y="700"/><mxPoint x="450" y="269"/></Array></mxGeometry>
+                </mxCell>
+                <mxCell id="d_e4" value="TCP 5432 · Session pooler · Prisma" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;endArrow=block;exitX=1;exitY=0.35;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="d_api" target="d_db" edge="1">
+                    <mxGeometry relative="1" as="geometry"></mxGeometry>
+                </mxCell>
+                <mxCell id="d_e5" value="HTTPS · SDK Cloudinary · interface StockageFichiers" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;endArrow=block;exitX=1;exitY=0.85;exitDx=0;exitDy=0;entryX=0;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="d_api" target="d_photos" edge="1">
+                    <mxGeometry relative="1" as="geometry"><Array as="points"><mxPoint x="960" y="275"/><mxPoint x="960" y="440"/></Array></mxGeometry>
+                </mxCell>
+                <mxCell id="d_e6" value="HTTPS · ouvre l&#39;app Maps (lien profond)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;endArrow=block;dashed=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=1;entryY=0.5;entryDx=0;entryDy=0;" parent="1" source="d_appmobile" target="d_gmaps" edge="1">
+                    <mxGeometry relative="1" as="geometry"></mxGeometry>
+                </mxCell>
+                <mxCell id="d_e7" value="HTTPS · ouvre Maps (lien)" style="edgeStyle=orthogonalEdgeStyle;rounded=1;html=1;fontSize=10;endArrow=block;dashed=1;exitX=0;exitY=0.5;exitDx=0;exitDy=0;entryX=0.5;entryY=1;entryDx=0;entryDy=0;" parent="1" source="d_spa" target="d_gmaps" edge="1">
+                    <mxGeometry relative="1" as="geometry"></mxGeometry>
+                </mxCell>
+            </root>
+        </mxGraphModel>
+    </diagram>
+</mxfile>

@@ -6,7 +6,7 @@ Backend de l'application de suivi d'interventions techniques pour PME du bâtime
 
 - Stack : NestJS 12 (ESM) + Prisma + PostgreSQL.
 - Pattern : architecture en couches, monolithe modulaire.
-- Documentation : `docs/ADR.md`, `docs/architecture.md`.
+- Documentation : `docs/ADR.md`, `docs/architecture.md`, diagramme C4 `docs/interveo-c4.drawio` (à ouvrir avec [draw.io](https://app.diagrams.net/)).
 - Règles de développement : `CLAUDE.md`.
 
 ## Démarrage

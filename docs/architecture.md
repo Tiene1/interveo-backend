@@ -332,6 +332,14 @@ Retour de Cédric : le compte directeur (`kouassi`) n'est pas forcément tenu pa
 - **Renvoie `200` avec le profil à jour** (`ProfilUtilisateur`), contrairement à `PATCH /auth/mot-de-passe` (`204`) : ici le corps de réponse a un usage réel côté client (mettre à jour l'affichage — la salutation « Bonjour, {nom} » côté web — sans attendre un prochain `GET /auth/moi`).
 - Tests : 5 unitaires (`auth.service.spec.ts`), 3 e2e (`auth.e2e-spec.ts`, compte technicien jetable, vérifie aussi que `GET /auth/moi` reflète le changement ensuite). `openapi.json` régénéré. 128 tests unitaires et 128 e2e verts.
 
+### Diagramme C4 versionné dans le dépôt : `docs/interveo-c4.drawio` (2026-10-12)
+Le diagramme C4 (niveaux 1 à 3 pour l'API, l'app mobile et le back-office web, plus le déploiement) n'existait que dans le dossier de conception, hors de tout dépôt. Il est désormais versionné ici, au format draw.io (6 pages), pour pouvoir être ouvert depuis le portfolio. Ce n'est pas une refonte d'architecture : le code et les ADR ne changent pas.
+
+- **Renommage** : « SIM Interventions » → « Interveo » dans tous les titres, et l'acteur « M. Kouassi Bertin » devient « Directeur » (même règle que le renommage du 2026-09-18).
+- **Mentions périmées corrigées** pour refléter la production réelle : « Docker sur VPS » / « volume sur le VPS » → Render, Supabase, Cloudinary ; « Drift ou Isar » → Drift ; « comptes (seed) » → gestion complète des comptes techniciens.
+- **Page « Déploiement » redessinée** : le diagramme de conception montrait un VPS (Docker Compose, nginx, Let's Encrypt), jamais mis en place. Elle montre maintenant le téléphone (APK des Releases GitHub), le poste du directeur, Vercel (back-office statique), Render derrière Cloudflare (API), Supabase (PostgreSQL) et Cloudinary (photos).
+- Les autres pages ne changent que par ces libellés. Les modules et endpoints ajoutés après la conception (libre-service du mot de passe et du nom, exports) ne sont pas tous représentés : `architecture.md` reste la référence détaillée.
+
 ### Configuration (`.env`)
 `DATABASE_URL`, `JWT_SECRET`, `PHOTOS_DIR`, `PORT`. Aucune de ces valeurs en dur dans le code. `.env.example` versionné, `.env` non versionné.
 
