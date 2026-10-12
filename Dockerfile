@@ -20,7 +20,11 @@ WORKDIR /app
 
 # Les fichiers qui decrivent les dependances et le schema d'abord : tant qu'ils
 # ne changent pas, la couche `npm ci` reste en cache.
-COPY --chown=node:node package.json package-lock.json prisma.config.ts ./
+# tsconfig.json doit etre la AVANT `npm ci` : `prisma generate` y lit le systeme
+# de modules pour choisir l'extension des imports du client genere. Sans lui, le
+# client importe des fichiers `.ts`, et l'API compilee plante au demarrage
+# (ERR_MODULE_NOT_FOUND ... internal/class.ts).
+COPY --chown=node:node package.json package-lock.json prisma.config.ts tsconfig.json ./
 COPY --chown=node:node prisma ./prisma
 
 # `npm ci` lance le postinstall `prisma generate` (client dans src/generated).
@@ -28,7 +32,7 @@ COPY --chown=node:node prisma ./prisma
 # a cette commande (elle n'est pas conservee dans l'image).
 RUN DATABASE_URL="postgresql://build:build@localhost:5432/build" npm ci
 
-COPY --chown=node:node tsconfig.json tsconfig.build.json nest-cli.json ./
+COPY --chown=node:node tsconfig.build.json nest-cli.json ./
 COPY --chown=node:node src ./src
 RUN npm run build
 
