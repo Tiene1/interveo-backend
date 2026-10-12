@@ -4,7 +4,7 @@
   "description": "API Interveo - suivi des interventions techniques pour PME du batiment (NestJS + Prisma + PostgreSQL)",
   "author": "NISSI BAT SERVICES",
   "private": true,
-  "license": "UNLICENSED",
+  "license": "MIT",
   "type": "module",
   "scripts": {
     "postinstall": "prisma generate",
