@@ -1,7 +1,7 @@
 name: Docker smoke
 
 # Demarre vraiment `docker compose up` sur une machine GitHub et s'en sert
-# (scripts/docker-smoke.sh), avec les ports par defaut puis avec
+# (scripts/docker-smoke.sh : curl, puis un parcours dans Chrome), avec les ports par defaut puis avec
 # API_PORT=3300 / WEB_PORT=3301.
 #
 # Declenche UNIQUEMENT sur la branche `docker-smoke` et a la main. Surtout pas
@@ -48,3 +48,11 @@ jobs:
       # `docker compose logs` avant de tout nettoyer.
       - name: Test de fumee de docker compose up
         run: bash scripts/docker-smoke.sh
+
+      - name: Captures d'ecran du navigateur (echec)
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: captures-${{ matrix.api_port }}
+          path: smoke-captures
+          if-no-files-found: ignore

@@ -4,7 +4,8 @@
 # relance et verifie que les donnees (base et photos) sont toujours la.
 #
 # Lance par .github/workflows/docker-smoke.yml ; utilisable a la main sur toute
-# machine qui a Docker, curl et jq (depuis la racine du depot ou ailleurs) :
+# machine qui a Docker, curl et jq (le parcours navigateur, optionnel en local,
+# demande en plus Node et Chrome : SMOKE_BROWSER=1) :
 #   bash scripts/docker-smoke.sh
 #   API_PORT=3300 WEB_PORT=3301 bash scripts/docker-smoke.sh
 #
@@ -179,10 +180,11 @@ TECH_ID="$(echo "$techniciens" | jq -er '.[] | select(.identifiant == "koffi") |
 JETON_TECH="$(connexion koffi technicien123)"
 ok "POST /auth/login (technicien koffi)"
 
+NOM_CLIENT="Client test de fumee"
 date_prevue="$(date -u -d '+1 day' +%Y-%m-%dT%H:%M:%SZ)"
 creation="$(appel 201 POST "$API/interventions" -H "$(entete "$JETON_DIR")" \
   -H 'Content-Type: application/json' \
-  -d "{\"nomClient\":\"Client test de fumee\",\"adresse\":\"1 rue du Test, Abidjan\",\"telephone1\":\"0102030405\",\"datePrevue\":\"$date_prevue\",\"technicienId\":\"$TECH_ID\"}")"
+  -d "{\"nomClient\":\"$NOM_CLIENT\",\"adresse\":\"1 rue du Test, Abidjan\",\"telephone1\":\"0102030405\",\"datePrevue\":\"$date_prevue\",\"technicienId\":\"$TECH_ID\"}")"
 INTERVENTION_ID="$(echo "$creation" | jq -er '.id')"
 [ "$(echo "$creation" | jq -r '.statut')" = "PLANIFIEE" ] || echec "statut initial different de PLANIFIEE"
 [ "$(echo "$creation" | jq -r '.technicienId')" = "$TECH_ID" ] || echec "technicien non attribue"
@@ -215,6 +217,18 @@ echo "$entetes" | tr -d '\r' | grep -qix "access-control-allow-origin: $WEB" ||
   { echo "$entetes"; echec "CORS : l'API n'autorise pas l'origine $WEB"; }
 ok "CORS : l'API autorise l'origine du web ($WEB)"
 
+titre "4b. Parcours dans un vrai navigateur (Chrome)"
+if [ -n "${CI:-}" ] || [ "${SMOKE_BROWSER:-}" = "1" ]; then
+  mkdir -p "$TMP/navigateur"
+  cp scripts/docker-smoke-browser.mjs "$TMP/navigateur/"
+  npm install --prefix "$TMP/navigateur" --no-audit --no-fund --loglevel=error playwright-core@1.63.0
+  WEB_URL="$WEB" INTERVENTION_ID="$INTERVENTION_ID" NOM_CLIENT="$NOM_CLIENT" \
+    CAPTURES="${GITHUB_WORKSPACE:+$GITHUB_WORKSPACE/smoke-captures}" \
+    node "$TMP/navigateur/docker-smoke-browser.mjs" || echec "le parcours dans le navigateur a echoue"
+else
+  echo "  --  ignore en local (SMOKE_BROWSER=1 pour l'activer ; demande Chrome et Node)"
+fi
+
 # ---------------------------------------------------------------------------
 titre "5. docker compose down (sans -v) puis up : persistance"
 docker compose down
@@ -234,7 +248,7 @@ JETON_TECH="$(connexion koffi technicien123)"
 ok "les comptes fonctionnent toujours apres le redemarrage"
 
 detail="$(appel 200 GET "$API/interventions/$INTERVENTION_ID" -H "$(entete "$JETON_DIR")")"
-[ "$(echo "$detail" | jq -r '.nomClient')" = "Client test de fumee" ] ||
+[ "$(echo "$detail" | jq -r '.nomClient')" = "$NOM_CLIENT" ] ||
   echec "l'intervention n'est plus la apres le redemarrage"
 echo "$detail" | jq -e --arg p "$PHOTO_AVANT" 'any(.photos[]; .id == $p)' >/dev/null ||
   echec "la photo n'est plus rattachee a l'intervention"
